@@ -1,3 +1,9 @@
+/*
+ * ParseProductDSL.scala
+ *        written for the sortable coding challenge 
+ *        submitted by: Raymund Rimando
+ *  usage: scala ParseProductDSL <product.txt> <listing.txt> <output.txt>
+ */
 import scala.util.parsing.combinator._
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Buffer
@@ -6,6 +12,12 @@ import java.io.FileWriter
 
 import scala.util.matching.Regex
 
+/* todo: build infrastructure
+         packaging
+         split into separate files
+         unit testing
+         */
+
 class ParseErrorException extends java.lang.RuntimeException {
   def this(msg:String) = { this()
     println("msg: " + msg)
@@ -13,23 +25,25 @@ class ParseErrorException extends java.lang.RuntimeException {
 }
 
 
+/* class to instantiate each product */
 class Product (val name:String, val manufacturer:String, val model:String, val family:String, val date:String) {
   val resellers:Buffer[Listing] = new ListBuffer[Listing]
   def this(name:String) = this(name, null, null, null, null)
-
-  def getResellersList(): Seq[Listing] = resellers 
 
   override def toString = "{\"product_name\":" + name + 
              ",\n \"model\":\"" + model +
              ",\n \"listings\": Array[" +  resellers.toArray.deep.mkString(",")  + "\n]},\n"  
 }
 
+/* class to instantiate for each listing */
 class Listing (val title:String, val manufacturer:String, val currency:String, val price:String) {
   override def toString =  "\n   \"title\":" + title + ", \"manufacturer\":" + manufacturer + ", \"currency\":" + currency + ", \"price\":" + price
 }
 
+/* compilation of products */
 class ProductCatalog {
   private val products:Buffer[Product] = new ListBuffer[Product]
+
   def this (l: List[Product]) {
     this()
     addListOfProducts(l)
@@ -45,37 +59,32 @@ class ProductCatalog {
 
   def getProductList(): Seq[Product] = products 
 
-  def findDistinctManufacturer(): Seq[String] = {
-    val n = new ListBuffer[String]
-    for (i <- products) n += i.manufacturer
-    n.distinct
-  }
-
-  def _addProductListing(newListing: Listing): Any = {
-    for (i <- this.findProductsByManufacturer(newListing.manufacturer)) {
-        if (newListing.title.contains(i.model.dropRight(1).reverse.dropRight(1).reverse)) {
-          i.resellers += newListing
-        }
-    }
-  }
   def addProductListing(newListing: Listing): Any = {
+
+    /* model delimiter */
     val modelDelimiter = """[ _\-\s/]"""
+
+    /* iterate through the product list by manufacturer */ 
     for (i <- this.findProductsByManufacturer(newListing.manufacturer)) {
-      val token = i.model.tail.dropRight(1)
-      val modelR = new Regex (".*" + modelDelimiter + "(" + token + ")" + modelDelimiter + ".*")
+
+      /* trim the double quotes...must be a faster way to do this */
+      val modelToken = i.model.tail.dropRight(1)
+
+      /* regex to match the model in the title */
+      val modelR = new Regex (".*" + modelDelimiter + "(" + modelToken + ")" + modelDelimiter + ".*")
 
       newListing.title match {
         case modelR (tmp) => { i.resellers += newListing }
         case _ => // Do nothing
       }                                                                                                              
     }
-    //println(this)
     this
   }
 
   override def toString = products.mkString
 }
 
+/* compilation of suppler */
 class SupplierCatalog {
   private val listing:Buffer[Listing] = new ListBuffer[Listing]
   def this (l: List[Listing]) {
@@ -97,11 +106,6 @@ class SupplierCatalog {
     listing.filter(_.title.contains(n))
   }
 
-  def findDistinctManufacturer(): Seq[String] = {
-    val n = new ListBuffer[String]
-    for (i <- listing) { n += i.manufacturer }
-    n.distinct
-  }
   override def toString = "Products: " + listing.mkString
 }
 
@@ -116,11 +120,6 @@ object ProductDSL  extends JSONDictionary {
     }
 
     def catalog: Parser[List[Product]] = rep(device) ^^ { productList: List[Product] => productList }
-
-     /*
-    def catalog: Parser[List[Product]] = rep(device) ^^
-     { productList: List[Product] => productList }
-     */
 
     def device: Parser[Product] = "{" ~ product ~ manufacturer ~ model ~ opt(family) ~ announcedDate ~ "}" ^^ { 
         case "{" ~ product ~ manufacturer ~ model ~ Some(family) ~ announcedDate ~ "}" => { new Product(product, manufacturer, model, family, announcedDate)}
@@ -168,6 +167,7 @@ class JSONDictionary extends JavaTokenParsers {
 }
 
 
+/* heres the entry point */
 object ParseProductDSL {
   def main(args: Array[String]) {
 
