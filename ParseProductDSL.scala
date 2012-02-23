@@ -31,13 +31,13 @@ class Product (val name:String, val manufacturer:String, val model:String, val f
   def this(name:String) = this(name, null, null, null, null)
 
   override def toString = "{\"product_name\":" + name + 
-             ",\n \"model\":\"" + model +
-             ",\n \"listings\": Array[" +  resellers.toArray.deep.mkString(",")  + "\n]},\n"  
+             ",\n \"model\":" + model +
+             ",\n \"listings\": [" +  resellers.toArray.deep.mkString(",")  + "\n]},\n"  
 }
 
 /* class to instantiate for each listing */
 class Listing (val title:String, val manufacturer:String, val currency:String, val price:String) {
-  override def toString =  "\n   \"title\":" + title + ", \"manufacturer\":" + manufacturer + ", \"currency\":" + currency + ", \"price\":" + price
+  override def toString =  "\n   {\"title\":" + title + ", \"manufacturer\":" + manufacturer + ", \"currency\":" + currency + ", \"price\":" + price +"}"
 }
 
 /* compilation of products */
