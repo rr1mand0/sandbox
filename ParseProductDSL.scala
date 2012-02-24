@@ -55,8 +55,13 @@ class ProductCatalog {
     products ++= newProducts
     this
   }
+
+  // return a list of products that match n
+  // normalize strings first before comparing
+  // TODO: need some way to improve speed
   def findProductsByManufacturer(n:String): Seq[Product] = {
-    products.filter(_.manufacturer.contains(n))
+    val token = conditionToken(n)
+    products.filter(j => conditionToken(j.manufacturer).contains(token))
   }
 
   def getProductList(): Seq[Product] = products 
@@ -80,7 +85,8 @@ class ProductCatalog {
     /* model delimiter */
     val modelDelimiter = """[ _\-\s/]"""
 
-    /* iterate through the product list by manufacturer */ 
+    /* iterate through the product list by manufacturer  
+       here are some listings that dont have the correct manufacturer name */
     for (i <- this.findProductsByManufacturer(newListing.manufacturer)) {
 
       /* trim the double quotes...must be a faster way to do this */
@@ -89,6 +95,7 @@ class ProductCatalog {
       /* regex to match the model in the title */
       val modelR = new Regex (".*" + modelDelimiter + "(" + conditionToken(modelToken) + ")" + modelDelimiter + ".*")
 
+//println (modelR + " => " + newListing.title)
       conditionToken(newListing.title) match {
         case modelR (tmp) => { i.resellers += newListing }
         case _ => // Do nothing
