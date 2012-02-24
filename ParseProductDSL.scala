@@ -26,18 +26,20 @@ class ParseErrorException extends java.lang.RuntimeException {
 
 
 /* class to instantiate each product */
-class Product (val name:String, val manufacturer:String, val model:String, val family:String, val date:String) {
+class Product (val name:String, val manufacturer:String, val model:String, val family:String, val date:String, val prettyPrint:String) {
+  def this(name:String, manufacturer:String, model:String, family:String, date:String) = this(name, manufacturer, model, family, date, "\n ")
   val resellers:Buffer[Listing] = new ListBuffer[Listing]
-  def this(name:String) = this(name, null, null, null, null)
+  def this(name:String) = this(name, null, null, null, null, "")
 
   override def toString = "{\"product_name\":" + name + 
-             ",\n \"model\":\"" + model +
-             ",\n \"listings\": [" +  resellers.toArray.deep.mkString(",")  + "\n]},\n"  
+             "," + prettyPrint + "\"model\":" + model +
+             "," + prettyPrint + "\"listings\": [" +  resellers.toArray.deep.mkString(",")  + prettyPrint + "]}\n"  
 }
 
 /* class to instantiate for each listing */
-class Listing (val title:String, val manufacturer:String, val currency:String, val price:String) {
-  override def toString =  "\n   {\"title\":" + title + ", \"manufacturer\":" + manufacturer + ", \"currency\":" + currency + ", \"price\":" + price + "}"
+class Listing (val title:String, val manufacturer:String, val currency:String, val price:String, val prettyPrint:String) {
+  def this (title:String, manufacturer:String, currency:String, price:String) = this (title, manufacturer, currency, price, "\n  ") 
+  override def toString =  prettyPrint + "{\"title\":" + title + ", \"manufacturer\":" + manufacturer + ", \"currency\":" + currency + ", \"price\":" + price + "}" 
 }
 
 /* compilation of products */
@@ -59,6 +61,20 @@ class ProductCatalog {
 
   def getProductList(): Seq[Product] = products 
 
+  // normalize the token
+  def conditionToken(name:String) = {
+    val sep = '_'
+    name.map(_.toLower match {
+        case c if (('a' <= c && c <= 'z') || ('0' <= c && c <= '9')) => c
+        case ' ' => sep
+        case '_' => sep
+        case '-' => sep
+        case '/' => 'x'
+        case ',' => sep
+        case _ => sep
+        }).replaceAll(sep + "+", sep + "")
+  }
+
   def addProductListing(newListing: Listing): Any = {
 
     /* model delimiter */
@@ -71,9 +87,9 @@ class ProductCatalog {
       val modelToken = i.model.tail.dropRight(1)
 
       /* regex to match the model in the title */
-      val modelR = new Regex (".*" + modelDelimiter + "(" + modelToken + ")" + modelDelimiter + ".*")
+      val modelR = new Regex (".*" + modelDelimiter + "(" + conditionToken(modelToken) + ")" + modelDelimiter + ".*")
 
-      newListing.title match {
+      conditionToken(newListing.title) match {
         case modelR (tmp) => { i.resellers += newListing }
         case _ => // Do nothing
       }                                                                                                              
@@ -106,7 +122,7 @@ class SupplierCatalog {
     listing.filter(_.title.contains(n))
   }
 
-  override def toString = "Products: " + listing.mkString
+  override def toString = "SupplierCatalog: " + listing.mkString
 }
 
 object ProductDSL  extends JSONDictionary {
