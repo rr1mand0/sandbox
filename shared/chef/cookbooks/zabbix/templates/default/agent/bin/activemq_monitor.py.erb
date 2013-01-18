@@ -1,0 +1,177 @@
+#!/usr/local/bin/python
+
+import subprocess
+import re
+import sys
+import os
+import socket
+
+base_key = "activemq"
+uri = "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi"
+mqadmin_cmd = "/usr/local/lib/activemq/bin/activemq-admin"
+zabbix_sender = "/usr/local/bin/zabbix_sender"
+zabbix_conf = "<%= @conf_file %>"
+path = "/usr/bin:/usr/local/bin"
+discovery_file = "/tmp/zabbix_dest_disc.txt"
+
+mqadmin = [mqadmin_cmd, 'query', '--jmxurl', uri]
+
+broker_keys = {
+    'TotalMessageCount': 1,
+    'TotalEnqueueCount': 1,
+    'TotalDequeueCount': 1,
+    'MemoryPercentUsage': 1,
+    'TotalConsumerCount': 1
+}
+
+#used for both queues and topics
+dest_keys = {
+    'ConsumerCount': 1,
+    'ProducerCount': 1,
+    'EnqueueCount': 1,
+    'DequeueCount': 1,
+    'QueueSize': 1
+}
+
+#gets populated later
+queues = []
+topics = []
+zabbix_data = {}
+
+def usage_and_die(val):
+  print val + 'Usage:'
+  print sys.argv[0] + ' brokers|destinations|discovery'
+  exit()
+
+#write queues and topics to a file. need to differentiate
+#since we have to query differently for queues and topics
+def write_dest_names(queues, topics):
+  file = open(discovery_file, 'w')
+  for q in queues:
+    file.write(q + ',queue\n')
+  for t in topics:
+    file.write(t + ',topic\n')
+  file.close()  
+
+#read discovery_file and populate queues[] and topics[]
+def read_dest_names():
+  file = open(discovery_file, 'r')
+  for line in file:
+    line = line.strip()
+    items = line.split(',')
+    if items[1] == 'queue':
+      queues.append(items[0])
+    elif items[1] == 'topic':
+      topics.append(items[0])
+  file.close()
+
+#get names for the query
+def get_disc_names(query):
+  names = []
+  iter = run_command(query)
+  for line in iter:
+    items = line.split()
+    if len(items) != 3:
+      continue
+    if items[0] == "Name":
+       if re.match("ActiveMQ", items[2]) == None:
+         names.append(items[2])
+  return names 
+
+def do_discovery():
+  #discover all queues/topics and return something like this:
+  #{
+  #  "data":[
+  #    { "{#DESTNAME}":"some_queue"},
+  #  ]
+  #}
+  queues = get_disc_names('-QQueue')
+  topics = get_disc_names('-QTopic')
+  names = []
+  names.extend(queues)
+  names.extend(topics)
+  names_len = len(names)
+  print "{"
+  print "  \"data\":["
+  x = 0
+  for name in names:
+    x += 1 
+    if x < names_len:
+      print "    { \"{#DESTNAME}\":\"" + name + "\"},"
+    else:
+      print "    { \"{#DESTNAME}\":\"" + name + "\"}"
+  print "  ]"
+  print "}" 
+ 
+  #also write to a file for later use so we don't have to rerun discovery every
+  #time we run the destinations command
+  write_dest_names(queues, topics)
+
+def send_zabbix():
+  hostname = socket.gethostname().split('.')[0]
+  data = ""
+  for key in zabbix_data:
+    data = data + hostname + " " + key + " " + str(zabbix_data[key]) + "\n"
+
+  print data
+  z = subprocess.Popen([zabbix_sender, "-c", zabbix_conf, "-i", "-"], stdin=subprocess.PIPE)
+  z.communicate(input=data)
+ 
+#return iterator for stdout for command
+def run_command(query):
+  cmd = list(mqadmin)
+  cmd.append(query)
+  env = os.environ.copy()
+  env['PATH'] = path
+  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+  return iter(p.stdout.readline, b'')
+
+#run a generic query, add data to zabbix_data dict
+def do_destination(iterator, keys, base, name):
+  for line in iterator:
+    items = line.split()
+    if len(items) != 3:
+      continue
+    if items[0] in keys:
+      key = base + '[' + name + ',' + items[0] + ']'
+      zabbix_data[key] = items[2]
+
+#treat broker slighly differently since there's a different style key
+def do_brokers(): 
+  iter = run_command('-QBroker')
+  for line in iter:
+    items = line.split()
+    if len(items) != 3:
+      continue
+    if items[0] in broker_keys:
+      key = base_key + '.broker.' + items[0]
+      zabbix_data[key] = items[2]  
+
+def do_queues():
+  for queue in queues:
+    query = '-QQueue=' + queue
+    it = run_command(query)
+    do_destination(it, dest_keys, base_key + '.destination', queue)
+
+def do_topics():
+  for topic in topics:
+    query = '-QTopic=' + topic
+    it = run_command(query)
+    do_destination(it, dest_keys, base_key + '.destination', topic)
+
+if len(sys.argv) != 2:
+  usage_and_die("Not enough arguments")
+
+if sys.argv[1] == 'brokers':
+  do_brokers()
+  send_zabbix()
+elif sys.argv[1] == 'destinations':
+  read_dest_names()
+  do_queues()
+  do_topics()
+  send_zabbix()
+elif sys.argv[1] == 'discovery':
+  do_discovery()
+else:
+  usage_and_die("Invalid arguments")
+

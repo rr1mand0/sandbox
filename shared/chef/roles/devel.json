@@ -1,0 +1,22 @@
+{
+  "env_run_lists": {
+  },
+  "override_attributes": {
+  },
+  "name": "devel",
+  "default_attributes": {
+    "chef_client": {
+      "enable_daemon": false
+    },
+    "timezone": {
+      "zone": "EST"
+    }
+  },
+  "description": "Enable development settings on node",
+  "chef_type": "role",
+  "run_list": [
+    "recipe[aw::devtools]",
+    "recipe[aw::devloopback]"
+  ],
+  "json_class": "Chef::Role"
+}

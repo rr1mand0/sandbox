@@ -1,0 +1,28 @@
+{
+  "logging":{
+    "path": "log/debug.log"
+  },
+  "sensord":{
+    "recv-channel":{
+      "name":"/topic/rtkbox-ops",
+      "num-connect-retries":"120",
+      "time-between-connect-retries-in-seconds":"1"
+    },
+    "send-channel":{
+      "name":"/topic/ops-results",
+      "num-connect-retries":"120",
+      "time-between-connect-retries-in-seconds":"1"
+    },
+    "sensors":{
+      "nmap-sensor":{},
+      "pcap-sensor":{},
+      "generic-sensor":{},
+      "flow-sensor":{
+        "applabel-rules":"etc/yafApplabelRules.conf",
+        "dpi-plugin":"lib/yaf/dpacketplugin.so",
+        "dpi-plugin-opts":"80",
+        "dpi-rules":"etc/yafDPIRules.conf"
+      }
+    }
+  }
+}

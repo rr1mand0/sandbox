@@ -1,0 +1,24 @@
+# PeerNode Server openvpn.conf Out-of-band tunnel (layer 3)
+
+port <%= @openvpn_outofband_port %>
+proto udp
+
+dev <%= @outofband_interface %>
+
+ifconfig <%= @peernode_outofband_ip %> <%= @rtkbox_outofband_ip %>
+
+secret static.key
+
+user nobody
+group nobody
+
+persist-tun
+persist-key
+
+daemon
+comp-lzo
+
+ping 10
+ping-restart 120
+
+management 127.0.0.1 <%= @outofband_mgmt_port %>

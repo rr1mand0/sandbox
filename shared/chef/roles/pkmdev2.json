@@ -1,0 +1,18 @@
+{
+  "env_run_lists": {
+  },
+  "override_attributes": {
+  },
+  "name": "rtkbox",
+  "default_attributes": {
+  },
+  "description": "RTKBox Role",
+  "chef_type": "role",
+  "run_list": [
+    "recipe[activemq::rtkbox]",
+    "recipe[aw]",
+    "recipe[aw::sudowheel]",
+    "recipe[openvpn::rtkbox]"
+  ],
+  "json_class": "Chef::Role"
+}

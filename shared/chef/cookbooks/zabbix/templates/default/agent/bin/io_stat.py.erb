@@ -1,0 +1,54 @@
+#!/usr/local/bin/python
+import subprocess
+import re
+
+# zpool iostat 5 2
+#pool        alloc   free   read  write   read  write
+#----------  -----  -----  -----  -----  -----  -----
+#zroot       3.95G  5.49G      1     13  11.5K   200K
+#zroot       3.95G  5.49G      1     10  13.6K   130K
+
+zabbix_sender = "/usr/local/bin/zabbix_sender"
+zabbix_conf = "<%= @conf_file %>"
+base_key = "freebsd.custom.iostat"
+time = 5
+
+iostat = ["/sbin/zpool","iostat", str(time), "2"]
+
+def fix_bandwidth(item):
+  stripped = re.sub(r'[A-Za-z]', '', item)
+  val = 0
+  if item[len(item)-1] == 'K':
+    val = float(stripped) * 1024
+  elif item[len(item)-1] == 'M':
+    val = float(stripped) * 1024 * 1024
+  else:
+    val = float(stripped)
+  rate = val/time
+  return str(rate)
+
+def get_rate(val):
+  i = int(val)
+  rate = i/time
+  return str(rate)
+
+
+def send_zabbix(key, val):
+  #print "Command: " + zabbix_sender + " -c " + zabbix_conf + " -k " + base_key + "." + key + " -o " + val
+  subprocess.call([zabbix_sender, "-c", zabbix_conf, "-k", base_key + "." + key, "-o", val])
+
+p = subprocess.Popen(iostat, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+i = iter(p.stdout.readline, b'')
+for line in i:
+  last_line = line
+
+items = line.split()
+read_ops = get_rate(items[3])
+write_ops = get_rate(items[4])
+read_kb = fix_bandwidth(items[5])
+write_kb = fix_bandwidth(items[6])
+
+send_zabbix('readops', read_ops)
+send_zabbix('writeops', write_ops)
+send_zabbix('readkb', read_kb)
+send_zabbix('writekb', write_kb)

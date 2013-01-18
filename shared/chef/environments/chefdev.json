@@ -1,0 +1,16 @@
+{
+  "name": "chefdev",
+  "default_attributes": {
+  },
+  "description": "Chef Development Environment, test chef cookbooks here",
+  "cookbook_versions": {
+    "zabbix": "= 0.1.4",
+    "activemq": "= 0.2.3",
+    "ntp": "= 1.3.3",
+    "openvpn": "= 0.3.3"
+  },
+  "override_attributes": {
+  },
+  "json_class": "Chef::Environment",
+  "chef_type": "environment"
+}

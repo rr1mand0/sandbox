@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# PROVIDE: rtk_sensord
+# REQUIRE: activemq
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="rtk_sensord"
+start_cmd="rtk_start"
+stop_cmd="rtk_stop"
+pidfile="/var/run/${name}.pid"
+rtk_script_name="/usr/local/aw/py/rtk/daemons/rtk_sensord.py"
+procname="/usr/local/bin/python"
+rcvar="${name}_enable"
+
+. /usr/local/aw/bin/env.sh
+
+rtk_start()
+{
+  $procname $rtk_script_name --pidfile $pidfile start
+}
+
+rtk_stop()
+{
+  $procname $rtk_script_name --pidfile $pidfile stop
+}
+
+load_rc_config $name
+eval ": \${${name}_enable:=\"NO\"}"
+
+run_rc_command "$1"
+

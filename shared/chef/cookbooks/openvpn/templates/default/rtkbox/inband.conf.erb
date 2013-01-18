@@ -1,0 +1,29 @@
+# RTKBox Server openvpn.conf In-band tunnel (layer 2)
+
+remote <%= @peernode_public_ip %>
+port <%= @openvpn_inband_port %>
+proto udp
+
+dev <%= @inband_interface %>
+
+ifconfig <%= @rtkbox_inband_ip %> 255.255.255.0
+
+secret static.key
+
+user nobody
+group nobody
+
+persist-tun
+persist-key
+
+daemon
+comp-lzo
+
+ping 10
+ping-restart 60
+
+management 127.0.0.1 <%= @inband_mgmt_port %>
+
+script-security 2
+up <%= @vpn_up %>
+down <%= @vpn_down %>

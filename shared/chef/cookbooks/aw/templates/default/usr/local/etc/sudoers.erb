@@ -1,0 +1,13 @@
+## sudoers file.
+root ALL=(ALL) ALL
+
+# Passwordless sudo for the wheel group
+<% if @enable %>
+%wheel ALL=(ALL) NOPASSWD: ALL
+%admin ALL=(ALL) NOPASSWD: ALL
+<% else %>
+#%wheel ALL=(ALL) NOPASSWD: ALL
+#%admin ALL=(ALL) NOPASSWD: ALL
+<% end %>
+
+Defaults env_keep += "SSH_AUTH_SOCK"

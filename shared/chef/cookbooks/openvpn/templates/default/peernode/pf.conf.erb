@@ -1,0 +1,11 @@
+inband_if=<%= @inband_interface %>
+rtkbox_inband_ip=<%= @rtkbox_inband_ip %>
+ext_if=<%= @peernode_ext_if %>
+
+set skip on lo
+
+nat on $ext_if from !$ext_if:network to any -> $ext_if
+
+pass in on $inband_if from any to any tag TUNIFACE keep state
+pass in on $ext_if route-to ($inband_if $rtkbox_inband_ip) from any to !$ext_if:network tag TUNIFACE keep state
+pass out on $ext_if reply-to ($inband_if $rtkbox_inband_ip) from any to any tagged TUNIFACE keep state

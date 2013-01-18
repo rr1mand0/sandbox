@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# chefclient startup script
+#
+# PROVIDE: chefclient
+# REQUIRE: DAEMON
+#
+
+. /etc/rc.subr
+
+name=chefclient
+rcvar=`set_rcvar`
+
+procname=<%= @client_bin %>
+config=${CONFIG-/etc/chef/client.rb}
+pidfile=${PIDFILE-/var/run/chef/client.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/$prog}
+logfile=${LOGFILE-/var/log/chef/client.log}
+interval=${INTERVAL-1800}
+splay=${SPLAY-20}
+options=${OPTIONS-}
+
+start_cmd="<%= @client_bin %> -d -c $config -L $logfile -P $pidfile -i $interval -s $splay $options"
+stop_cmd="chefclient-stop"
+status_cmd="chefclient-status"
+
+load_rc_config ${name}
+
+chefclient-status()
+{
+        if [ -e $pidfile ]
+	then
+		PID=`cat $pidfile`
+		NUM_PROC=`ps aux | grep -c $PID`
+		if [ $NUM_PROC -gt 0 ]
+		then
+			echo "$name is running with pid $PID"
+		else
+			echo "$name is not running"
+		fi
+	else
+		echo "$name is not running."
+	fi
+}
+													
+
+chefclient-stop()
+{
+	if [ -e $pidfile ]
+	then	
+		rc_pid=`cat $pidfile`
+		kill $rc_pid
+	fi
+}
+
+run_rc_command "$1"
+

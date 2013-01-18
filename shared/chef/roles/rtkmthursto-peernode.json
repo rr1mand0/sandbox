@@ -1,0 +1,21 @@
+{
+  "env_run_lists": {
+  },
+  "override_attributes": {
+  },
+  "name": "rtkmthursto03",
+  "default_attributes": {
+  },
+  "description": "mthursto - AW Peer Node",
+  "chef_type": "role",
+  "run_list": [
+    "recipe[activemq::peernode]",
+    "recipe[openvpn::peernode]",
+    "recipe[aw]",
+    "recipe[aw::cassandra]",
+    "recipe[aw::disablelro]",
+    "recipe[aw::sudowheel]",
+    "recipe[aw::services_peernode]"
+  ],
+  "json_class": "Chef::Role"
+}

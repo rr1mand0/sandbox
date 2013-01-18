@@ -1,0 +1,5 @@
+<% if @enable %>
+openvpn_outofband_enable="YES"
+<% else %>
+openvpn_outofband_enable="NO"
+<% end %>
