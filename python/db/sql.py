@@ -10,6 +10,7 @@ with con:
 
     cur = con.cursor()
     cur.execute('SELECT SQLITE_VERSION()')
+    cur.execute("CREATE TABLE CARS(ID INT, Name TEXT, Price REAL)")
 
     data = cur.fetchone()
 
