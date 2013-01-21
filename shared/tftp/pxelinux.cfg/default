@@ -19,9 +19,9 @@ LABEL BootLocal
 
 LABEL AWN RTKBox Ubuntu 12.04 AMD64 standard
   KERNEL 12.04-precise-amd64/linux
-  APPEND ramdisk_size=11057 auto=true priority=critical interface=auto netcfg/dhcp_timeout=60 locale=en_US.UTF-8 hostname=rtk-pxe0 console-setup/layoutcode=us netcfg/wireless_wep= preseed/url=http://10.0.0.1/12.04-precise-amd64/preseed-rtk.cfg initrd=12.04-precise-amd64/initrd.gz --
+  APPEND ramdisk_size=11057 auto=true priority=critical interface=auto netcfg/dhcp_timeout=60 locale=en_US.UTF-8 hostname=rtk-pxe0 console-setup/layoutcode=us netcfg/wireless_wep= preseed/url=http://10.0.0.1/12.04-precise-amd64/preseed.cfg initrd=12.04-precise-amd64/initrd.gz --
 
 
 LABEL AWN PeerNode Ubuntu 12.04 AMD64 standard
   KERNEL 12.04-precise-amd64/linux
-  APPEND ramdisk_size=11057 auto=true priority=critical interface=auto netcfg/dhcp_timeout=60 locale=en_US.UTF-8 hostname=pn-pxe0 console-setup/layoutcode=us netcfg/wireless_wep= preseed/url=http://10.0.0.1/12.04-precise-amd64/preseed-pn.cfg initrd=12.04-precise-amd64/initrd.gz --
+  APPEND ramdisk_size=11057 auto=true priority=critical interface=auto netcfg/dhcp_timeout=60 locale=en_US.UTF-8 hostname=pn-pxe0 console-setup/layoutcode=us netcfg/wireless_wep= preseed/url=http://10.0.0.1/12.04-precise-amd64/preseed.cfg initrd=12.04-precise-amd64/initrd.gz --
