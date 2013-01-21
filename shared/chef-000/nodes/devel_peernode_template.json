@@ -1,8 +1,0 @@
-{
-  "chef_environment": "dev",
-  "run_list": [
-    "role[base]",
-    "role[peernode]",
-    "role[devel]"
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "name": "pkmenv",
-  "default_attributes": {
-  },
-  "json_class": "Chef::Environment",
-  "description": "Chef Development Environment, test chef cookbooks here",
-  "chef_type": "environment",
-  "cookbook_versions": { }
-}
