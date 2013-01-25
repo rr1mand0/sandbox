@@ -93,7 +93,14 @@ script "pxe" do
   user "root"
   code <<-EOH
     mkdir /var/tftp
-#rsync -av rsync://ca.archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/ /var/tftp/
+    for dist in precise raring;
+    do
+        for arch in amd64 i386;
+        do
+            echo rsync -av rsync://ca.archive.ubuntu.com/ubuntu/dists/$dist/main/installer-$arch/current/images/netboot/initrd.gz /var/tftp/$dist-$arch/
+            echo rsync -av rsync://ca.archive.ubuntu.com/ubuntu/dists/$dist/main/installer-$arch/current/images/netboot/kernel /var/tftp/$dist-$arch/
+        done
+    done
     #sed -ie "/ipv4.ip_forward/d" /etc/sysctl.conf
     echo "ipv4.ip_forward=1" > /etc/sysctl.conf
     iptables -F
@@ -104,9 +111,6 @@ script "pxe" do
     iptables -t mangle -X
     iptables -t raw -F
     iptables -t raw -X
-    iptables -A FORWARD -i eth1 -s 192.168.1.0/255.255.255.0 -j ACCEPT
-    iptables -A FORWARD -i eth0 -d 192.168.1.0/255.255.255.0 -j ACCEPT
-    iptables -A FORWARD -i ath0 -s 192.168.2.0/255.255.255.0 -j ACCEPT
     iptables -A FORWARD -i eth0 -d 192.168.2.0/255.255.255.0 -j ACCEPT
     iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
   EOH
