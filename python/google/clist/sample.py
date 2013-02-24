@@ -114,12 +114,20 @@ def main(argv):
 
     print "Success! Now add code here."
 
-    #result = service.tasks().list(tasklist='@default').execute()
-    #if result.
+
     result = service.tasklists().list().execute()
+    pprint.pprint (result)
+    for item in result["items"]:
+      print ("List found: " + item["title"] + " >> " + item['id'])
+
+    result = service.tasks().list(tasklist='MTAyNTg4OTUzODQ0MzM5NDgxOTQ6Mzg2MDQzNTkxOjA').execute()
+    pprint.pprint (result)
+
+    #if result.
+    #result = service.tasklists().list().execute()
     #names = [item['title'] for item in result]
     #pprint.pprint (result)
-    print (result["items"][0]["title"])
+    #print (result["items"][0]["title"])
   except AccessTokenRefreshError:
     print ("The credentials have been revoked or expired, please re-run"
       "the application to re-authorize")

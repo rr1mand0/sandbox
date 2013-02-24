@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import gflags
 import httplib2
 import logging
@@ -61,45 +62,112 @@ class GoogleAuth(object):
 
     self.service = build('tasks', 'v1', http=http)
 
+#   try:
+#     result = self.service.tasklists().list().execute()
+#     #pprint.pprint (result)
+#     for item in result["items"]:
+#       print ("List found: " + item["title"] + " >> " + item["id"])
+
+#     result = self.service.tasks().list(tasklist='MTAyNTg4OTUzODQ0MzM5NDgxOTQ6MjAxMjI4NzM1NDow').execute()
+#     for item in result["items"]:
+#       print (">> List found: " + item["title"] + " >> " + item["id"])
+#   except:
+#     pass
+
   def getService(self):
     return self.service
 
-class Item(object):
-  def __init__(self, name):
+class Task(object):
+  _title = None
+  def __init__(self, title):
+    self._title = title
     pass
 
+  def getBody(self):
+    return { 'title' : self._title }
+
 class TaskList(GoogleAuth):
-  def __init__(self, name):
-    self.name = name
+  _tasklist = None
+  _kind = "tasks#taskList"
+  _updated = None
+  _etag = None
+  _id = None
+  _selfLink = None
+  
+
+  def __init__(self, title):
+    self._title = title
 
     # authenticate 
     GoogleAuth.__init__(self)
+    #self.FindTaskList()
+    self.CreateIfNotExists(title)
+    pass
+
+  def FindTaskList(self):
+    self._tasklist = GoogleAuth.getService(self).tasks().list(tasklist='@default')
+    pprint.pprint (self._tasklist)
+    if self._tasklist:
+      print "Found tasklist: " + self._title
+      #result = GoogleAuth.getService(self).tasks().list(tasklist=self._tasklist['id']).execute()
+      #pprint.pprint (result)
+    else:
+      print ("Creating: " + self._title)
+      _body = { 
+          'title': self._title 
+      }
+      print ("Creating tasklist: " + self._title)
+      tasklists.insert(body=_body).execute()
+      self._tasklist = tasklists.list(tasklist=self._title)
+
+    
+  def CreateIfNotExists (self, title):
     try:
-      print "Success! Now add code here."
       result = GoogleAuth.getService(self).tasklists().list().execute()
-      print (result["items"][0]["title"])
       for item in result["items"]:
-        #print ("item found: " + item["title"] + " :: " + name)
-        if (item["title"] == name):
-          print ("List found: " + item["title"])
-          self.list = item
+        if (item["title"] == title):
+          self._tasklist = item
+          print (" ** " + self._tasklist["title"] + " >> " + self._tasklist["id"])
+        else: 
+          print ("    " + item["title"])
+
+      if not self._tasklist:
+          print ("Creating: " + self._title)
+          _body = { 
+              'title': self._title 
+          }
+          self._tasklist = GoogleAuth.getService(self).tasklists().insert(body=_body).execute()
+
     except AccessTokenRefreshError:
       print ("The credentials have been revoked or expired, please re-run"
         "the application to re-authorize")
     pass
 
-  def Create (self):
-    pass
+  def AddTask (self, task):
+    print ("Adding :" + task._title)
+    try:
+      GoogleAuth.getService(self).tasks().insert(tasklist=self._tasklist['id'], body=task.getBody()).execute()
+    except:
+      pass
 
-  def AddItem (self, item):
-    pass
+  def List(self):
+    print ("Task List:" + self._tasklist['title'] + " >> " + self._tasklist['id'] )
+    try:
+      result = GoogleAuth.getService(self).tasks().list(tasklist=self._tasklist['id']).execute()
+      for item in result["items"]:
+        print (" Task found: " + item["title"] + " >> " + item['id'])
+    except:
+      pass
 
   def Delete (self):
+    try:
+      result = GoogleAuth.getService(self).tasklists().delete(tasklist=self._tasklist['id']).execute()
+      print ("Deleting " + self._tasklist['title'] + " : SUCCESS")
+      self._tasklist = None
+    except:
+      print ("Deleting " + self._tasklist['title'] + " : FAIL")
+      pass
     pass
-
-  def List(self,id):
-    pass
-
 
 
 def main (argv):
@@ -109,10 +177,24 @@ def main (argv):
     print '%s\\nUsage: %s ARGS\\n%s' % (e, argv[0], FLAGS)
     sys.exit(1)
 
+
   logging.getLogger().setLevel(getattr(logging, FLAGS.logging_level))
 
-  s = TaskList("Raymund's list")
-  s.List(0)
+
+  tlist = TaskList("MyTestList")
+  tlist.List()
+  sofia = Task("Sofia")
+  ella = Task("ella")
+
+  tlist.AddTask(sofia)
+  tlist.AddTask(ella)
+  tlist.List()
+  tlist.Delete()
+
+
+
+
 
 if __name__ == '__main__':
   main(sys.argv)
+
