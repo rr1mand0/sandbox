@@ -1,0 +1,14 @@
+import os
+Import('env install_root')
+
+www_dir = [
+]
+
+prev_dir=None
+for d in www_dir:
+  if (prev_dir):
+    Requires(d, prev_dir)
+  SConscript('%s/SConscript' % d)
+  prev_dir = d
+
+
