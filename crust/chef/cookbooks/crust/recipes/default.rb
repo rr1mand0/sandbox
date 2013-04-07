@@ -68,6 +68,3 @@ service "apache2" do
   supports :start => true, :restart => true, :status => true
 end
 
-#www "crustydb" do
-  #action :create
-#end

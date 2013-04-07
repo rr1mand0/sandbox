@@ -8,10 +8,10 @@
   "_run_list": [
   ],
   "run_list": [
-    "recipe[crust]",
     "recipe[mysql::server]",
     "recipe[mysql::client]",
     "recipe[apache2::mod_wsgi]",
+    "recipe[crust]",
     "recipe[www]"
     ]
 }
