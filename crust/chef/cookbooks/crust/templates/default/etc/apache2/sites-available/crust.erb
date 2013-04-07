@@ -1,0 +1,28 @@
+<IfModule mod_wsgi.c>
+
+  <VirtualHost *:80>
+    ServerName <%= @crust_servername %>
+    ServerAdmin <%= @crust_admin_email %>
+
+    DocumentRoot <%= @crust_root_dir %>
+
+    Alias /robots.txt <%= @crust_root_dir %>/documents/robots.txt
+    Alias /favicon.ico <%= @crust_root_dir %>/documents/favicon.ico
+    Alias /media <%= @crust_root_dir %>/documents
+    
+
+    <Directory <%= @crust_root_dir %>/documents>
+      Order allow,deny
+      Allow from all
+    </Directory>
+
+    WSGIScriptAlias /crust <%= @crust_root_dir %>/crust/wsgi.py
+
+    <Directory <%= @crust_root_dir %>/crust >
+      Order allow,deny
+      Allow from all
+    </Directory>
+
+  </VirtualHost>
+
+</IfModule>
