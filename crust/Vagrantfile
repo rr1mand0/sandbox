@@ -1,0 +1,16 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+REMOTE_SRC_DIR = "/home/vagrant/src"
+LOCAL_SRC_DIR = '~/private/sandbox/crust'
+
+Vagrant::Config.run do |cfg|
+  cfg.vm.box = "precise64"
+  cfg.vm.boot_mode = :gui
+  cfg.vm.host_name = :crust.to_s
+  cfg.vm.customize ["modifyvm", :id, "--nic2", "bridged"]
+  cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", "en0: Wi-Fi (AirPort)"]
+  cfg.vm.share_folder("v-root", REMOTE_SRC_DIR, LOCAL_SRC_DIR, :nfs => false)
+  cfg.vm.provision :shell, :inline => "#{REMOTE_SRC_DIR}/install_chef.sh"
+  cfg.vm.provision :shell, :inline => "chef-solo -c #{REMOTE_SRC_DIR}/chef/config/solo-vagrant.rb -j #{REMOTE_SRC_DIR}/chef/nodes/crust-template.json"
+end

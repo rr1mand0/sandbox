@@ -1,0 +1,12 @@
+{
+  "mysql": {
+    "server_debian_password": "crusty",
+    "server_root_password": "crusty",  
+    "server_repl_password": "crusty"
+  },
+  "run_list": [
+    "recipe[crust]",
+    "recipe[mysql::server]",
+    "recipe[apache2]"
+    ]
+}
