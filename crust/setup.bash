@@ -1,3 +1,3 @@
 #!/bin/bash
 
-export VAGRANT_CWD=`pwd`
+alias crust="VAGRANT_CWD=$HOME/private/sandbox/crust vagrant"

@@ -9,10 +9,18 @@
 
 
 base_packages = {
-  'vim' => nil,
+  'libmysqlclient-dev' => nil,
+  'mysql-client' => nil,
   'python-dev' => nil,
+  'python-django' => nil,
+  'python-django-south' => nil,
+  'python-mysql.connector' => nil,
+  'python-mysqldb' => nil,
   'python-pip' => nil,
-  'python-django' => nil
+  'python-setuptools' => nil,
+  'python-simplejson' => nil,
+  'python-tz' => nil,
+  'vim' => nil
 }
 
 base_packages.each_pair do |package, ver|
@@ -59,3 +67,7 @@ end
 service "apache2" do
   supports :start => true, :restart => true, :status => true
 end
+
+#www "crustydb" do
+  #action :create
+#end
