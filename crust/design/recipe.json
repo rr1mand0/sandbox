@@ -1,0 +1,33 @@
+{
+  "type": "object", 
+  "description": "Recipe schema", 
+  "properties": {
+    "name": {
+      "title": "Name of recipe"
+      "type": "string", 
+    }, 
+    "ingredients": [], 
+    "instructions": [],
+    "source": {
+      "name": {
+        "type": "string",
+        "enum": [ "website", "personal", "cookbook" ]
+      }
+      "personal": {
+        "optional": true, 
+        "type": "string", 
+        "format": "url"
+      }, 
+      "url": {
+        "optional": true, 
+        "type": "string", 
+        "format": "uri"
+      }, 
+      "cookbook": {
+        "optional": true, 
+        "type": "string", 
+        "title": "string"
+      } 
+    }
+  }
+}

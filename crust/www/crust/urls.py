@@ -5,13 +5,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'crust.views.home', name='home'),
-    # url(r'^crust/', include('crust.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
+    url(r'^polls', include('crust.polls.urls')),
     url(r'^admin/', include(admin.site.urls)),
 )

@@ -1,0 +1,20 @@
+{
+  "description": "Ingredient Schema", 
+  "properties": {
+    "name": {
+      "required": true, 
+      "title": "name of ingredient", 
+      "type": "string"
+    }, 
+    "quantity": {
+      "value": "float"
+    }, 
+    "unit": {
+      "name": {
+        "enum": [ "none", "cup", "oz", "kg" ], 
+        "type": "string"
+      }
+    }
+  }, 
+  "type": "object"
+}

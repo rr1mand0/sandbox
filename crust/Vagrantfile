@@ -10,6 +10,12 @@ Vagrant::Config.run do |cfg|
   cfg.vm.host_name = :crust.to_s
   cfg.vm.customize ["modifyvm", :id, "--nic2", "bridged"]
   cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", "en0: Wi-Fi (AirPort)"]
+
+  cfg.vm.customize ["modifyvm", :id, "--nic1", "nat"]
+  cfg.ssh.guest_port = 22
+  cfg.ssh.username = "vagrant"
+  #cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", "en0: Wi-Fi (AirPort)"]
+
   cfg.vm.share_folder("v-root", REMOTE_SRC_DIR, LOCAL_SRC_DIR, :nfs => false)
   cfg.vm.provision :shell, :inline => "#{REMOTE_SRC_DIR}/install_chef.sh"
   cfg.vm.provision :shell, :inline => "chef-solo -c #{REMOTE_SRC_DIR}/chef/config/solo-vagrant.rb -j #{REMOTE_SRC_DIR}/chef/nodes/crust-template.json"

@@ -1,0 +1,12 @@
+{
+    "name": "Meal schema", 
+    "properties": {
+      "name": {
+        "type": "string",
+        "title": "name of the meal"
+      }
+      "recipes": [
+      ]
+    }, 
+    "type": "object"
+}

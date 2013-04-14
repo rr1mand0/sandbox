@@ -1,0 +1,26 @@
+{
+  "name": "Product schema", 
+  "properties": {
+    "UPC": {
+      "description": "UPC of the product", 
+      "required": false, 
+      "type": "number"
+    }, 
+    "name": {
+      "description": "Name of the product", 
+      "required": true, 
+      "type": "string"
+    }, 
+    "price-by-store": [
+      {
+        "price": {
+          "required": false, 
+          "value": "decimal"
+        }, 
+        "store": {
+          "name": "string"
+        }
+      }
+    ]
+  }
+}
