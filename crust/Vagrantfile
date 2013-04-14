@@ -8,6 +8,9 @@ Vagrant::Config.run do |cfg|
   cfg.vm.box = "precise64"
   cfg.vm.boot_mode = :gui
   cfg.vm.host_name = :crust.to_s
+
+  cfg.vm.customize ["modifyvm", :id, "--macaddress1", "080027880CA6"]
+
   cfg.vm.customize ["modifyvm", :id, "--nic2", "bridged"]
   cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", "en0: Wi-Fi (AirPort)"]
 

@@ -57,12 +57,10 @@ template "/etc/apache2/sites-available/crust" do
     :crust_servername    => node['crust']['crust_servername'],
     :crust_admin_email   => node['crust']['crust_admin_email']
       )
-  notifies :reload, "execute[a2ensite crust]", :delayed
+  #notifies "execute[a2ensite crust]", :delayed
 end
 
-execute "a2ensite crust" do
-  notifies :reload, "service[apache2]", :delayed
-end
+execute "a2ensite crust"
 
 service "apache2" do
   supports :start => true, :restart => true, :status => true
