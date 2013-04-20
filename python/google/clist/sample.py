@@ -83,6 +83,45 @@ gflags.DEFINE_enum('logging_level', 'ERROR',
     'Set the level of logging detail.')
 
 
+class TaskList:
+  tasklist = {}
+
+  def __init__ (self, tasklist, title):
+    self.servicetasklist = tasklist
+    self.title = title
+
+  def GetId(self):
+    result = self.servicetasklist.list().execute()
+    i=0
+    while (1):
+      try:
+        mytitle = result['items'][i]['title']
+        if mytitle == self.title:
+          return result['items'][i]['id']
+        pass
+      except IndexError:
+        return None
+      i = i+1
+
+
+  def Exists(self):
+    if self.GetId() == None:
+      return False
+    return True
+
+
+  def Insert(self):
+    if not self.Exists():
+      print "Inserting tasklist: %s"%self.title
+      self.tasklist['title'] = self.title
+      self.servicetasklist.insert(body=self.tasklist).execute()
+
+  def Delete(self):
+    if self.Exists():
+      id = self.GetId()
+      self.servicetasklist.delete(tasklist=id).execute()
+
+    
 def main(argv):
   # Let the gflags module process the command-line arguments
   try:
@@ -91,20 +130,14 @@ def main(argv):
     print '%s\\nUsage: %s ARGS\\n%s' % (e, argv[0], FLAGS)
     sys.exit(1)
 
-  # Set the logging according to the command-line flag
   logging.getLogger().setLevel(getattr(logging, FLAGS.logging_level))
 
-  # If the Credentials don't exist or are invalid, run through the native
-  # client flow. The Storage object will ensure that if successful the good
-  # Credentials will get written back to a file.
   storage = Storage('sample.dat')
   credentials = storage.get()
 
   if credentials is None or credentials.invalid:
     credentials = run(FLOW, storage)
 
-  # Create an httplib2.Http object to handle our HTTP requests and authorize it
-  # with our good Credentials.
   http = httplib2.Http()
   http = credentials.authorize(http)
 
@@ -113,16 +146,22 @@ def main(argv):
   try:
 
     print "Success! Now add code here."
+    tl = service.tasklists()
+    tasklist = {
+      'title': "test list"
+    }
+    
+    #tl.insert(body=tasklist).execute()
+    t = TaskList(tl, "rays-test=00")
+    t.Insert()
+    t.Delete()
 
-    #result = service.tasks().list(tasklist='@default').execute()
-    #if result.
-    result = service.tasklists().list().execute()
-    #names = [item['title'] for item in result]
-    #pprint.pprint (result)
-    print (result["items"][0]["title"])
+    #result = tl.list().execute()
+    #print json.dumps(result, indent=2, separators=(',', ': '))
   except AccessTokenRefreshError:
     print ("The credentials have been revoked or expired, please re-run"
       "the application to re-authorize")
 
+#json.dumps([1,2,3,{'4': 5, '6': 7}], separators=(',',':'))
 if __name__ == '__main__':
   main(sys.argv)
