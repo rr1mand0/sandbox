@@ -28,6 +28,7 @@ To get detailed log output run:
   $ python sample.py --logging_level=DEBUG
 """
 
+import tasklist
 import gflags
 import httplib2
 import logging
@@ -57,7 +58,7 @@ MISSING_CLIENT_SECRETS_MESSAGE = """
 WARNING: Please configure OAuth 2.0
 
 To make this sample run you will need to download the client_secrets.json file
-and save it at:
+and save it at
 
    %s
 
@@ -83,44 +84,40 @@ gflags.DEFINE_enum('logging_level', 'ERROR',
     'Set the level of logging detail.')
 
 
-class TaskList:
-  tasklist = {}
-
-  def __init__ (self, tasklist, title):
-    self.servicetasklist = tasklist
-    self.title = title
-
-  def GetId(self):
-    result = self.servicetasklist.list().execute()
-    i=0
-    while (1):
-      try:
-        mytitle = result['items'][i]['title']
-        if mytitle == self.title:
-          return result['items'][i]['id']
-        pass
-      except IndexError:
-        return None
-      i = i+1
+"""
+class Calendar:
+  def __init__(self, service):
+    self.service = service
+  
+  def List(self):
+    page_token = None
+    while True:
+      calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
+      if calendar_list['items']:
+        for calendar_list_entry in calendar_list['items']:
+          print calendar_list_entry['summary']
+      page_token = calendar_list.get('nextPageToken')
+      if not page_token:
+        break
+"""
 
 
-  def Exists(self):
-    if self.GetId() == None:
-      return False
-    return True
+class GoogleService:
+  def __init__(self):
+    storage = Storage('sample.dat')
+    credentials = storage.get()
 
+    if credentials is None or credentials.invalid:
+      credentials = run(FLOW, storage)
 
-  def Insert(self):
-    if not self.Exists():
-      print "Inserting tasklist: %s"%self.title
-      self.tasklist['title'] = self.title
-      self.servicetasklist.insert(body=self.tasklist).execute()
+    http = httplib2.Http()
+    http = credentials.authorize(http)
 
-  def Delete(self):
-    if self.Exists():
-      id = self.GetId()
-      self.servicetasklist.delete(tasklist=id).execute()
+    self.service = build('tasks', 'v1', http=http)
 
+  def get_service(self):
+    return self.service
+      
     
 def main(argv):
   # Let the gflags module process the command-line arguments
@@ -132,16 +129,7 @@ def main(argv):
 
   logging.getLogger().setLevel(getattr(logging, FLAGS.logging_level))
 
-  storage = Storage('sample.dat')
-  credentials = storage.get()
-
-  if credentials is None or credentials.invalid:
-    credentials = run(FLOW, storage)
-
-  http = httplib2.Http()
-  http = credentials.authorize(http)
-
-  service = build('tasks', 'v1', http=http)
+  service = GoogleService().get_service()
 
   try:
 
@@ -151,13 +139,14 @@ def main(argv):
       'title': "test list"
     }
     
-    #tl.insert(body=tasklist).execute()
-    t = TaskList(tl, "rays-test=00")
-    t.Insert()
-    t.Delete()
+    #t = TaskList(tl, "rays-test=00")
+    #t.Insert()
+    #t.Delete()
 
-    #result = tl.list().execute()
-    #print json.dumps(result, indent=2, separators=(',', ': '))
+    #calService = build(serviceName='calendar', version='v3', http=http)
+    #cal = Calendar(calService)
+    #cal.List()
+
   except AccessTokenRefreshError:
     print ("The credentials have been revoked or expired, please re-run"
       "the application to re-authorize")
