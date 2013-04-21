@@ -1,3 +1,16 @@
+"""
+https://developers.google.com/google-apps/tasks/v1/reference/tasklists#resource
+
+{
+  "kind": "tasks#taskList",
+  "id": string,
+  "etag": string,
+  "title": string,
+  "updated": datetime,
+  "selfLink": string
+}
+"""
+
 class TaskList:
   tasklist = {}
 
@@ -5,7 +18,7 @@ class TaskList:
     self.servicetasklist = tasklist
     self.title = title
 
-  def GetId(self):
+  def get_id(self):
     result = self.servicetasklist.list().execute()
     i=0
     while True:
@@ -18,19 +31,24 @@ class TaskList:
         return None
       i = i+1
 
-  def Exists(self):
-    if self.GetId() == None:
+  def exists(self):
+    if self.get_id() == None:
       return False
     return True
 
-  def Insert(self):
-    if not self.Exists():
+  def insert(self):
+    if not self.exists():
       print "Inserting tasklist: %s"%self.title
       self.tasklist['title'] = self.title
       self.servicetasklist.insert(body=self.tasklist).execute()
 
-  def Delete(self):
-    if self.Exists():
+  def delete(self):
+    if self.exists():
       print "Deleting tasklist %s"%self.title
-      id = self.GetId()
+      id = self.get_id()
       self.servicetasklist.delete(tasklist=id).execute()
+
+  def dump(self):
+    result = self.servicetasklist.list().execute()
+    print json.dumps(result)
+

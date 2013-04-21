@@ -101,7 +101,6 @@ class Calendar:
         break
 """
 
-
 class GoogleService:
   def __init__(self):
     storage = Storage('sample.dat')
@@ -135,6 +134,7 @@ def main(argv):
 
     print "Success! Now add code here."
     tl = service.tasklists()
+    print json.dumps(tl.list().execute(), indent=2)
     tasklist = {
       'title': "test list"
     }

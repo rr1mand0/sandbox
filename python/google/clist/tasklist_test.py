@@ -1,45 +1,51 @@
 from googleservice import GoogleService
 from tasklist import TaskList
+from tasks import Task
 from oauth2client.client import AccessTokenRefreshError
-import logging
 import sys
 import gflags
+import unittest
+import json
 
+"""
+import logging
 FLAGS = gflags.FLAGS
 gflags.DEFINE_enum('logging_level', 'ERROR',
     ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
     'Set the level of logging detail.')
+"""
+
+
+class TaskListTest(unittest.TestCase):
+  def setUp(self):
+    self.service = GoogleService().get_service()
+    self.tl = self.service.tasklists()
+    self.task = self.service.tasks()
+    #print json.dumps(self.tl.list().execute(), indent=2)
+
+  def testcreate_and_delete(self):
+    tasklist = TaskList(self.tl, "rays-test=00")
+    tasklist.insert()
+    self.failIf(not tasklist.exists())
+
+    tasklist.delete()
+    self.failIf(tasklist.exists())
+
+  def test_add_tasks_to_tasklist(self):
+    print ("adding tasks")
+    tasklist = TaskList(self.tl, "task-inserter")
+    tasklist.insert()
+    self.failIf(not tasklist.exists())
+
+    tl_id = tasklist.get_id()
+    task = Task(self.task, tl_id)
+    task.insert()
+
+    pass
+
 
 def main(argv):
-  try:
-    argv = FLAGS(argv)
-  except gflags.FlagsError, e:
-    print '%s\\nUsage: %s ARGS\\n%s' % (e, argv[0], FLAGS)
-    sys.exit(1)
-
-  logging.getLogger().setLevel(getattr(logging, FLAGS.logging_level))
-
-  service = GoogleService().get_service()
-
-  try:
-
-    print "Success! Now add code here."
-    tl = service.tasklists()
-    tasklist = {
-      'title': "test list"
-    }
-    
-    t = TaskList(tl, "rays-test=00")
-    t.Insert()
-    t.Delete()
-
-    #calService = build(serviceName='calendar', version='v3', http=http)
-    #cal = Calendar(calService)
-    #cal.List()
-
-  except AccessTokenRefreshError:
-    print ("The credentials have been revoked or expired, please re-run"
-      "the application to re-authorize")
+  unittest.main()
 
 if __name__ == '__main__':
   main(sys.argv)
