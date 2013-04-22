@@ -61,31 +61,38 @@ FLOW = OAuth2WebServerFlow(
 
 
 class GoogleService:
+  service_list = {"items":[
+    {
+      "name": "tasks",
+      "version": "v1",
+      "storage_file": "tasks.dat",
+      "store": None
+    },
+    {
+      "name": "calendar",
+      "version": "v3",
+      "storage_file": "calendar.dat",
+      "store": None
+    }
+  ]
+  }
   def __init__(self):
-    task_storage = Storage('tasks.dat')
-    credentials = task_storage.get()
+    self.task_service = None
+    self.calendar_service = None
+    for service in self.service_list['items']:
+      task_storage = Storage(service['storage_file'])
+      credentials = task_storage.get()
 
-    if credentials is None or credentials.invalid == True:
-      credentials = run(FLOW, task_storage)
+      if credentials is None or credentials.invalid == True:
+        credentials = run(FLOW, task_storage)
 
-    http = httplib2.Http()
-    http = credentials.authorize(http)
+      http = httplib2.Http()
+      http = credentials.authorize(http)
 
-    self.task_service     = build(serviceName='tasks', version='v1', http=http, developerKey='')
-
-    calendar_storage = Storage('calendar.dat')
-    credentials = calendar_storage.get()
-
-    if credentials is None or credentials.invalid == True:
-      credentials = run(FLOW, calendar_storage)
-
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-
-    self.calendar_service = build(serviceName='calendar', version='v3', http=http, developerKey='')
+      service['store']     = build(serviceName=service['name'], version=service['version'], http=http, developerKey='')
 
   def get_task_service(self):
-    return self.task_service
+    return self.service_list['items'][0]['store']
       
   def get_calendar_service(self):
-    return self.calendar_service
+    return self.service_list['items'][1]['store']

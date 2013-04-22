@@ -8,12 +8,15 @@ class Calendar:
 
   def get_id(self):
     page_token = None
-    calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
+    try:
+      calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
+      #print json.dumps(calendar_list, indent=2)
+    except:
+      pass
     i=0
     while True:
       try:
         mytitle = calendar_list['items'][i]['summary']
-        #print ("summary: %s" % mytitle)
         if mytitle == self.calendar_name:
           return calendar_list['items'][i]['id']
         pass
