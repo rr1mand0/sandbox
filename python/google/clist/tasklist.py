@@ -38,13 +38,13 @@ class TaskList:
 
   def insert(self):
     if not self.exists():
-      print "Inserting tasklist: %s"%self.title
+      #print "Inserting tasklist: %s"%self.title
       self.tasklist['title'] = self.title
       self.servicetasklist.insert(body=self.tasklist).execute()
 
   def delete(self):
     if self.exists():
-      print "Deleting tasklist %s"%self.title
+      #print "Deleting tasklist %s"%self.title
       id = self.get_id()
       self.servicetasklist.delete(tasklist=id).execute()
 

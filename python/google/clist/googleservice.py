@@ -37,11 +37,12 @@ import json
 from apiclient.discovery import build
 from oauth2client.file import Storage
 from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.tools import run
 
 
 
-CLIENT_SECRETS = 'client_secrets.json'
+CLIENT_SECRETS = 'crustifier.json'
 MISSING_CLIENT_SECRETS_MESSAGE = """
 WARNING: Please configure OAuth 2.0
 
@@ -52,27 +53,39 @@ and save it at
 
 """ % os.path.join(os.path.dirname(__file__), CLIENT_SECRETS)
 
-FLOW = flow_from_clientsecrets(CLIENT_SECRETS,
-    scope=[
-      'https://www.googleapis.com/auth/tasks',
-      'https://www.googleapis.com/auth/tasks.readonly',
-    ],
-    message=MISSING_CLIENT_SECRETS_MESSAGE)
+FLOW = OAuth2WebServerFlow(
+    client_id="838345617067.apps.googleusercontent.com", 
+    client_secret="rpL19YcdHDCr1gbuod8eN7CZ",
+    scope= 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
+    user_agent="crustifier/V0.1")
 
 
 class GoogleService:
   def __init__(self):
-    storage = Storage('sample.dat')
-    credentials = storage.get()
+    task_storage = Storage('tasks.dat')
+    credentials = task_storage.get()
 
-    if credentials is None or credentials.invalid:
-      credentials = run(FLOW, storage)
+    if credentials is None or credentials.invalid == True:
+      credentials = run(FLOW, task_storage)
 
     http = httplib2.Http()
     http = credentials.authorize(http)
 
-    self.service = build('tasks', 'v1', http=http)
+    self.task_service     = build(serviceName='tasks', version='v1', http=http, developerKey='')
 
-  def get_service(self):
-    return self.service
+    calendar_storage = Storage('calendar.dat')
+    credentials = calendar_storage.get()
+
+    if credentials is None or credentials.invalid == True:
+      credentials = run(FLOW, calendar_storage)
+
+    http = httplib2.Http()
+    http = credentials.authorize(http)
+
+    self.calendar_service = build(serviceName='calendar', version='v3', http=http, developerKey='')
+
+  def get_task_service(self):
+    return self.task_service
       
+  def get_calendar_service(self):
+    return self.calendar_service
