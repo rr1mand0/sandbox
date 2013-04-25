@@ -4,13 +4,14 @@
 REMOTE_SRC_DIR = "/home/vagrant/src"
 LOCAL_SRC_DIR = '~/private/sandbox/crust'
 ethdev=ENV['ETHDEV']
+macaddress=ENV['CRUST_MAC']
 
 Vagrant::Config.run do |cfg|
   cfg.vm.box = "precise64"
   #cfg.vm.boot_mode = :gui
   cfg.vm.host_name = :crust.to_s
 
-  cfg.vm.customize ["modifyvm", :id, "--macaddress2", "080027880CA6"]
+  cfg.vm.customize ["modifyvm", :id, "--macaddress2", macaddress]
   cfg.vm.customize ["modifyvm", :id, "--nic2", "bridged"]
   cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", ethdev]
 
