@@ -1,6 +1,6 @@
 from googleservice import GoogleService
 from tasklist import TaskList
-from calendar import Calendar
+from calendar import CalendarList
 from tasks import Task
 from oauth2client.client import AccessTokenRefreshError
 import sys
@@ -46,12 +46,27 @@ class TaskListTest(unittest.TestCase):
 
   #@unittest.skip("demonstrating skipping")
   def test_calandar_list(self):
-    calendar = Calendar(self.calendar_service, "calendar-test")
+    calendar = CalendarList(self.calendar_service, "calendar-test")
+    calendar.insert()
     self.failIf(not calendar.exists())
 
+class CalendarListTest(unittest.TestCase):
+  def setUp(self):
+    self.calendar_service = GoogleService().get_calendar_service()
+
+  def test_calendarList_insert_and_delete(self):
+    calendarList = CalendarList(self.calendar_service, "calendar-test")
+    calendarList.insert()
+    calendarList.delete()
+
+    #tasklist.delete()
+    #self.failIf(calendarList.exists())
 
 def main(argv):
-  suite = unittest.TestLoader().loadTestsFromTestCase(TaskListTest)
+  #suite = unittest.TestLoader().loadTestsFromTestCase(TaskListTest)
+  #unittest.TextTestRunner(verbosity=2).run(suite)
+
+  suite = unittest.TestLoader().loadTestsFromTestCase(CalendarListTest)
   unittest.TextTestRunner(verbosity=2).run(suite)
   #unittest.main()
 
