@@ -1,3 +1,10 @@
+from googleservice import GoogleService
+from tasks import Task
+from oauth2client.client import AccessTokenRefreshError
+import sys
+import gflags
+import unittest
+import json
 """
 https://developers.google.com/google-apps/tasks/v1/reference/tasklists#resource
 
@@ -14,8 +21,9 @@ https://developers.google.com/google-apps/tasks/v1/reference/tasklists#resource
 class TaskList:
   tasklist = {}
 
-  def __init__ (self, tasklist, title):
-    self.servicetasklist = tasklist
+  def __init__ (self, title):
+    self.task_service = GoogleService().get_task_service()
+    self.servicetasklist = self.task_service.tasklists()
     self.title = title
 
   def get_id(self):
@@ -36,7 +44,7 @@ class TaskList:
       return False
     return True
 
-  def insert(self):
+  def create(self):
     if not self.exists():
       #print "Inserting tasklist: %s"%self.title
       self.tasklist['title'] = self.title

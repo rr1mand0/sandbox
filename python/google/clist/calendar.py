@@ -59,6 +59,10 @@ class CalendarList:
       if not page_token:
         break
 
+  def get_calendar_items(self):
+    pass
+
+
   def list_items(self):
     pass
 

@@ -1,6 +1,6 @@
 from googleservice import GoogleService
 from tasklist import TaskList
-from calendar import Calendar
+from calendar  import CalendarList
 from tasks import Task
 from oauth2client.client import AccessTokenRefreshError
 import sys
@@ -19,16 +19,21 @@ gflags.DEFINE_enum('logging_level', 'ERROR',
 
 class TaskListTest(unittest.TestCase):
   def setUp(self):
-    self.task_service = GoogleService().get_task_service()
     self.calendar_service = GoogleService().get_calendar_service()
-    self.tl = self.task_service.tasklists()
-    self.task = self.task_service.tasks()
+    self.task_service     = GoogleService().get_task_service()
+    self.tl               = self.task_service.tasklists()
+    self.task             = self.task_service.tasks()
     #print json.dumps(self.tl.list().execute(), indent=2)
+
+  def testcreate(self):
+    tasklist = TaskList("rays-test=01")
+    tasklist.create()
+    self.failIf(not tasklist.exists())
 
   #@unittest.skip("demonstrating skipping")
   def testcreate_and_delete(self):
-    tasklist = TaskList(self.tl, "rays-test=00")
-    tasklist.insert()
+    tasklist = TaskList("rays-test=00")
+    tasklist.create()
     self.failIf(not tasklist.exists())
 
     tasklist.delete()
@@ -38,17 +43,17 @@ class TaskListTest(unittest.TestCase):
   #@unittest.skip("demonstrating skipping")
   def test_add_tasks_to_tasklist(self):
     #print ("adding tasks")
-    tasklist = TaskList(self.tl, "task-inserter")
-    tasklist.insert()
+    tasklist = TaskList("task-inserter")
+    tasklist.create()
     self.failIf(not tasklist.exists())
 
     tl_id = tasklist.get_id()
     task = Task(self.task, tl_id)
-    task.insert()
+    task.create()
 
   #@unittest.skip("demonstrating skipping")
   def test_calandar_list(self):
-    calendar = Calendar(self.calendar_service, "Menu")
+    calendar = CalendarList(self.calendar_service, "Menu")
     self.failIf(not calendar.exists())
 
 
