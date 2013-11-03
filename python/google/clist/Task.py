@@ -76,17 +76,16 @@ class TaskList(GoogleAuth):
     GoogleAuth.__init__(self)
     try:
       print "Success! Now add code here."
-      result = GoogleAuth.getService(self).tasklists().list().execute()
-      print (result["items"][0]["title"])
-      for item in result["items"]:
-        #print ("item found: " + item["title"] + " :: " + name)
+      self.taskList = GoogleAuth.getService(self).tasklists().list().execute()
+
+      #print json.dumps(self.taskList, indent=2)
+      for item in self.taskList["items"]:
         if (item["title"] == name):
-          print ("List found: " + item["title"])
           self.list = item
+          print json.dumps(item, indent=2)
     except AccessTokenRefreshError:
       print ("The credentials have been revoked or expired, please re-run"
         "the application to re-authorize")
-    pass
 
   def Create (self):
     pass
@@ -97,7 +96,10 @@ class TaskList(GoogleAuth):
   def Delete (self):
     pass
 
-  def List(self,id):
+  def List(self):
+    _list = GoogleAuth.getService(self).tasks().list(tasklist=self.list['id']).execute()
+    print json.dumps(_list, indent=2)
+
     pass
 
 
@@ -111,8 +113,8 @@ def main (argv):
 
   logging.getLogger().setLevel(getattr(logging, FLAGS.logging_level))
 
-  s = TaskList("Raymund's list")
-  s.List(0)
+  s = TaskList("Grocery")
+  s.List()
 
 if __name__ == '__main__':
   main(sys.argv)

@@ -10,9 +10,10 @@ def main(argv):
     while True:
       try:
         mytitle = result['items'][i]['title']
-        print ("     %s == %s"%(mytitle, recipe))
-        if mytitle == recipe:
-          print ("    ingredient: %s" % (mytitle, recipe))
+        print ("     %s == %s"%(mytitle.strip(), recipe.strip()))
+        if mytitle.strip() == recipe.strip():
+          id = result['items'][i]['id'],
+          print ("    ingredient: %s %s" % (result['items'][i]['id'], recipe))
           id = result['items'][i]['id']
           break
       except IndexError:
@@ -29,6 +30,7 @@ def main(argv):
     }
 
     id = tasks.insert(tasklist=id, body=item).execute()
+
   title = 'shoppingList'
   calendarName = 'Menu'
   service = GoogleService()
