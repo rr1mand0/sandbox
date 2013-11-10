@@ -49,47 +49,60 @@ FLOW = OAuth2WebServerFlow(
 
 
 class GoogleService:
-  service_list = {"items":[
-    {
+  service_list = {
+    "tasks": {
       "name": "tasks",
       "version": "v1",
       "storage_file": "tasks.dat",
       "store": None
     },
-    {
+    'calendar': {
       "name": "calendar",
       "version": "v3",
       "storage_file": "calendar.dat",
       "store": None
     }
-  ]
   }
+  def _init_service(self, name):
+    task_storage = Storage(self.service_list[name]['storage_file'])
+    credentials = task_storage.get()
+
+    print ('Initializing: %s' % json.dumps(self.service_list[name]))
+    if credentials is None or credentials.invalid == True:
+      credentials = run(FLOW, task_storage)
+
+    http = httplib2.Http()
+    http = credentials.authorize(http)
+
+    version = self.service_list[name]['version']
+    service = build(serviceName=self.service_list[name]['name'], 
+        version=version, http=http, developerKey='')
+
+    self.service_list[name]['store'] = service
+
+  def get_store(self, name):
+    return self.service_list[name]['store']
+
   def __init__(self):
     self.task_service = None
     self.calendar_service = None
-    for service in self.service_list['items']:
-      task_storage = Storage(service['storage_file'])
-      credentials = task_storage.get()
+    for name, value in self.service_list.items():
+      self._init_service(name)
 
-      if credentials is None or credentials.invalid == True:
-        credentials = run(FLOW, task_storage)
-
-      http = httplib2.Http()
-      http = credentials.authorize(http)
-
-      service['store']     = build(serviceName=service['name'], version=service['version'], http=http, developerKey='')
-
-    calendar_service = self.service_list['items'][1]['store']
-    calendar_list_entry = {
-        'id': 'calendarId'
-    }
-
-    created_calendar_list_entry = service.calendarList().insert(body=calendar_list_entry).execute()
-
-    print created_calendar_list_entry['summary']
+  def get_calendar_list(self):
+    page_token = None
+    while True:
+      calendar_list = self.get_store('calendar').calendarList().list(pageToken=page_token).execute()
+      for calendar_list_entry in calendar_list['items']:
+        print calendar_list_entry['summary']
+      page_token = calendar_list.get('nextPageToken')
+      if not page_token:
+        break
 
   def get_task_service(self):
-    return self.service_list['items'][0]['store']
+    return self.get_store('task')
       
   def get_calendar_service(self):
-    return self.service_list['items'][1]['store']
+    return self.get_store('calendar')
+
+GoogleService()
