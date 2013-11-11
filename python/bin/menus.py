@@ -2,38 +2,57 @@
 
 import re
 import sys
-import couch
+from couch import *
 import json
 
 '''
 {
   'items': [
-    {
+    {}
   ]
 }
 '''
 
+thesaurus = {
+  "cabage" : "cabbage",
+  "cabagge" : "cabbage",
+  "stirfry" : "stir fry",
+  "tom's": "tomatoes",
+  "toms": "tomatoes",
+  "tom": "tomatoes",
+  "tomato": "tomatoes",
+  "tomatoe": "tomatoes",
+  "tomatos": "tomatoes",
+  "veggie" : "veggies",
+  "vietnames": "vietnamese"
+}
+
 def main(argv):
-  print ('Menus')
+  _old_menu = Menu()
+  _old_menu.process()
+  menu = _old_menu.get_unique_menu()
 
-  c = couch.Couch('menu')
-  menus = c.get_docs()
-  unique_menu = {}
-  for menu in menus['items']:
-    p = re.match (r'.*(Dinner|dinner|lunch|Lunch):(.*)', menu['name'])
-    if p and p.groups(0)[1].strip() != '':
-      item = p.groups(0)[1].strip()
-      if item and not unique_menu.has_key(item):
-        unique_menu[item] = {
-          'dates':[menu['date']]
-        }
-      else:
-        unique_menu[item]['dates'].append(menu['date'])
+  recipes = {}
 
-  meal = couch.Couch('meals')
+  thes_dict = Thesaurus()
+  thes_dict.set_thesaurus(thesaurus)
 
-  for k,v in unique_menu.items():
-    meal.save({k:v})
+  thes_dict.add_synonym("vegetables", "veggies")
+
+  for meal in menu:
+    for recipe in meal.split(','):
+      recipe_name = recipe.strip().lower()
+      recipes[recipe_name] = {}
+      for word in re.split(';|,| |\+|w/|/|\(|\)|<|>|\[|\]|-', recipe_name):
+        thes_dict.add_synonym(word, word)
+
+  for word in ["vietnames", "tomatoe", "vegetables"]:
+    print ("lookup: %s %s" % (word, thes_dict.get_normalized(word)))
+
+  normalized = thes_dict.thesaurus_to_normalized()
+  thes_dict.normalized_to_thesaurus(normalized)
+
+  thes_dict.save()
 
 if __name__ == "__main__":
    main(sys.argv[0:])
