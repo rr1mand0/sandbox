@@ -5,14 +5,6 @@ import sys
 from couch import *
 import json
 
-'''
-{
-  'items': [
-    {}
-  ]
-}
-'''
-
 thesaurus = {
   "cabage" : "cabbage",
   "cabagge" : "cabbage",

@@ -5,26 +5,27 @@ import json
 
 class Couch(object):
   def __init__(self, dbname, server='http://192.168.1.104:8081', create=False):
-    couch = couchdb.Server(server)
+    self.couch = couchdb.Server(server)
+    self.dbname = dbname.lower()
 
     # try and create a database
     try:
-      self.db = couch.create(dbname.lower()) 
+      self.db = self.couch.create(dbname) 
       print ("Creating database %s" % dbname)
     except couchdb.http.PreconditionFailed:
-      print ("Exists database %s" % dbname)
+      print ("Exists database %s" % self.dbname)
       pass
-    self.db = couch[dbname.lower()]
+    self.db = self.couch[self.dbname]
     print self.db
 
   def create(self):
     try:
-      self.db = couch.create(dbname.lower()) 
+      self.db = self.couch.create(self.dbname) 
     except couchdb.http.PreconditionFailed:
       pass
 
   def destroy(self):
-    pass
+    self.db = self.couch.delete(self.dbname) 
 
   def get_docs(self):
     map_fun = '''function(doc) {
@@ -59,11 +60,16 @@ class Thesaurus(Couch):
     "veggies" : ['veggie']
   }
 
-  def __init__(self, name='thesaurus'):
-    Couch.__init__(self, name)
+  def __init__(self, name='thesaurus', server='http://192.168.1.104:8081'):
+    Couch.__init__(self, name, server=server)
 
   def set_thesaurus(self, _thesaurus):
     self.thesaurus = _thesaurus
+    self._normalized = self.thesaurus_to_normalized()
+    self.pprint(self._normalized)
+
+  def get_synonyms(self, word):
+    return self._normalized.get(word, None)
 
   def get_normalized(self, word):
     return self.thesaurus.get(word, None)
@@ -115,7 +121,7 @@ class Thesaurus(Couch):
         'name': k,
         'values': v
       }
-      self.pprint(i)
+      print self.db.save(i)
 
 
 class Recipes(Couch):
