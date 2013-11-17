@@ -1,0 +1,27 @@
+{ "recipes": [
+   { "name": "arroz caldo",
+     "ingredients": [],
+     "url": ""
+   },
+   { "name": "chicken blackberry",
+     "ingredients": [],
+     "url": ""
+   },
+   { "name": "chicken curry",
+     "ingredients": [],
+     "url": ""
+   },
+   { "name": "cajun shrimp",
+     "ingredients": [],
+     "url": ""
+   },
+   { "name": "basil salmon",
+     "ingredients": [],
+     "url": ""
+   },
+   { "name": "cuccumber salad",
+     "ingredients": ['cuccumbers', 'cilantro', 'red onions'],
+     "url": ""
+   }
+  ]
+}
