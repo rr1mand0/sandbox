@@ -148,6 +148,7 @@ class GoogleService(object):
   def import_events_to_couchdb(self, server, name):
     import couchdb
     couch = couchdb.Server(server)
+    print ('Creating db:%s on server:%s' %(name, server))
 
     # try and create a database
     try:

@@ -4,14 +4,14 @@ import couchdb
 import json
 
 class Couch(object):
-  def __init__(self, dbname, server='http://192.168.1.104:8081', create=False):
+  def __init__(self, server, dbname, create=False):
     self.couch = couchdb.Server(server)
     self.dbname = dbname.lower()
 
     # try and create a database
     try:
-      self.db = self.couch.create(dbname) 
-      print ("Creating database %s" % dbname)
+      print ("Creating database %s" % self.dbname)
+      self.db = self.couch.create(self.dbname) 
     except couchdb.http.PreconditionFailed:
       print ("Exists database %s" % self.dbname)
       pass
@@ -60,8 +60,8 @@ class Thesaurus(Couch):
     "veggies" : ['veggie']
   }
 
-  def __init__(self, name='thesaurus', server='http://192.168.1.104:8081'):
-    Couch.__init__(self, name, server=server)
+  def __init__(self, server, name='thesaurus'):
+    Couch.__init__(self, server, name)
 
   def set_thesaurus(self, _thesaurus):
     self.thesaurus = _thesaurus
@@ -125,8 +125,8 @@ class Thesaurus(Couch):
 
 
 class Recipes(Couch):
-  def __init__(self):
-    Couch.__init__(self, 'recipes')
+  def __init__(self, server, dbname='recipes'):
+    Couch.__init__(self, server, dbname)
     self.recipes = {}
 
   def add(self, recipe):
@@ -141,8 +141,8 @@ class Recipes(Couch):
 
 
 class Menu(Couch):
-  def __init__(self):
-    Couch.__init__(self, 'menu')
+  def __init__(self, server, name):
+    Couch.__init__(self, server, name)
 
   def process(self):
     menus = self.get_docs()

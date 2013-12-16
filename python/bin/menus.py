@@ -20,13 +20,15 @@ thesaurus = {
 }
 
 def main(argv):
-  _old_menu = Menu()
+  server = sys.argv[1]
+  dbname = sys.argv[2]
+  _old_menu = Menu(server, dbname)
   _old_menu.process()
   menu = _old_menu.get_unique_menu()
 
   recipes = {}
 
-  thes_dict = Thesaurus()
+  thes_dict = Thesaurus(server, 'thesaurus')
   thes_dict.set_thesaurus(thesaurus)
 
   thes_dict.add_synonym("vegetables", "veggies")
