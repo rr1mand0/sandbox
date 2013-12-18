@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 import couchdb
@@ -10,13 +11,12 @@ class Couch(object):
 
     # try and create a database
     try:
-      print ("Creating database %s" % self.dbname)
       self.db = self.couch.create(self.dbname) 
+      logging.debug ("Created database %s" % self.dbname)
     except couchdb.http.PreconditionFailed:
-      print ("Exists database %s" % self.dbname)
       pass
     self.db = self.couch[self.dbname]
-    print self.db
+    #logging.debug (self.db)
 
   def create(self):
     try:
@@ -26,6 +26,7 @@ class Couch(object):
 
   def destroy(self):
     self.db = self.couch.delete(self.dbname) 
+    logging.debug ("Deleting database %s" % self.dbname)
 
   def get_docs(self):
     map_fun = '''function(doc) {
@@ -51,7 +52,7 @@ class Couch(object):
     self.db.save(item)
 
   def pprint(self, json_in):
-    print json.dumps(json_in, indent=2, sort_keys=True)
+    logging.debug ("%s" % json.dumps(json_in, indent=2, sort_keys=True))
 
 class Thesaurus(Couch):
   normalized = {
@@ -114,29 +115,80 @@ class Thesaurus(Couch):
   }'''
   def save(self):
     # transform into keyword: [acryonmns]
-    print self.db
+    logging.debug ("%s" % self.db)
     normalized = self.thesaurus_to_normalized()
     for k,v in normalized.items():
       i = {
         'name': k,
         'values': v
       }
-      print self.db.save(i)
+      logging.debug ('%s' % self.db.save(i))
 
+
+def mangled_id(string):
+  return string.replace(" ", "_").lower()
 
 class Recipes(Couch):
-  def __init__(self, server, dbname='recipes'):
+  def __init__(self, server='http://localhost:5984', dbname='recipes'):
     Couch.__init__(self, server, dbname)
     self.recipes = {}
 
   def add(self, recipe):
-    self.recipes[recipe] = {
-      'name': recipe,
-      'ingredients': []
-    }
+    rev_id, rev_ver = self.db.save(recipe)
+    logging.info("Adding recipe: %s (%s -- %s)" % (recipe['name'], rev_id, rev_ver))
+    logging.debug("recipe: %s:\n%s" % (recipe['name'], json.dumps(recipe, indent=2)))
 
-  def parse(self, str):
-    for recipe in str.split(','):
+  def update(self, recipe):
+    return self.add(recipe)
+
+  def exists(self, name):
+    if self.get_doc(name):
+      return True
+    return False
+
+  def get_id(self, name):
+    for id in self.db:
+      if name == self.db[id]['name']:
+        return id
+    return None
+
+  def get_doc(self, name):
+    for id in self.db:
+      if name == self.db[id]['name']:
+        logging.debug("get_doc: %s" % (json.dumps(self.db[id],indent=2)))
+        return self.db[id]
+    return {}
+
+  def delete(self, name):
+    for id in self.db:
+      if self.db[id]['name'] == name:
+        logging.info("Deleting recipe: %s" % json.dumps(self.db[id], indent=2))
+        self.db.delete(self.db[id])
+
+  def __len__(self):
+    return self.db.__len__()
+
+  def show(self, name):
+    logging.info("Show recipe: %s", name)
+
+  def list(self, name):
+    logging.info("List recipes")
+
+
+  def get_docs(self):
+    map_fun = '''function(doc) {
+      if (doc._id) {
+        emit(doc.name, doc._id);
+      }
+    }'''
+    
+    docs = []
+    for row in self.db.query(map_fun):
+      docs.append({ 'name': row.key, 'id': row.value })
+    return {'items':docs}
+
+  def parse(self, string):
+    for recipe in string.split(','):
       self.add(recipe.strip())
 
 
