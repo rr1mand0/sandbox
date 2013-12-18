@@ -133,10 +133,22 @@ class Recipes(Couch):
     Couch.__init__(self, server, dbname)
     self.recipes = {}
 
+  def add_with_ingredients (self, name, ingredients = []):
+    self.add({
+      'name': name,
+      'ingredients': [ing.strip() for ing in ingredients.split(',')]
+    })
+    
   def add(self, recipe):
-    rev_id, rev_ver = self.db.save(recipe)
-    logging.info("Adding recipe: %s (%s -- %s)" % (recipe['name'], rev_id, rev_ver))
-    logging.debug("recipe: %s:\n%s" % (recipe['name'], json.dumps(recipe, indent=2)))
+    if recipe:
+      doc = self.get_doc(recipe['name'])
+      if doc:
+        recipe['_rev'] = doc['_rev']
+        recipe['_id'] = doc['_id']
+
+      rev_id, rev_ver = self.db.save(recipe)
+      logging.info("Adding recipe: %s (%s -- %s)" % (recipe['name'], rev_id, rev_ver))
+      logging.debug("recipe: %s:\n%s" % (recipe['name'], json.dumps(recipe, indent=2)))
 
   def update(self, recipe):
     return self.add(recipe)
@@ -169,7 +181,8 @@ class Recipes(Couch):
     return self.db.__len__()
 
   def show(self, name):
-    logging.info("Show recipe: %s", name)
+    doc = self.get_doc(name)
+    print("Recipe: %s"% json.dumps(doc, indent=2))
 
   def list(self, name):
     logging.info("List recipes")

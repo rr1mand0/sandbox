@@ -101,7 +101,7 @@ class GoogleService(object):
         break
 
   def get_task_service(self):
-    return self.get_store('task')
+    return self.get_store('tasks')
       
   def get_calendar_service(self):
     return self.get_store('calendar')

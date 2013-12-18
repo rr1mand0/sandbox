@@ -35,6 +35,18 @@ class RecipeTest(unittest.TestCase):
     self.assertEquals(self.recipedb.__len__(), 0)
 
 
+  def test_create_by_args(self):
+    recipe_count = self.recipedb.__len__()
+    self.recipedb.add_with_ingredients ('adobo', 
+      ingredients = "chicken thighs, soy sauce, vinegar, bay leaves, peppercorn")
+    self.assertEquals(self.recipedb.exists('adobo'), True)
+    self.assertEquals(self.recipedb.__len__(), recipe_count+1)
+
+    self.recipedb.delete('adobo')
+    self.assertEquals(self.recipedb.exists('adobo'), False)
+    self.assertEquals(self.recipedb.__len__(), recipe_count)
+
+
   def test_create(self):
     self.assertEquals(self.recipedb.exists(self.boconcini['name']), True)
     self.assertEquals(self.recipedb.__len__(), 1)
@@ -47,11 +59,20 @@ class RecipeTest(unittest.TestCase):
 
   #@unittest.skip('none')
   def test_modify(self):
-    self.boconcini['ingredients'].append('salt')
-    self.recipedb.update(self.boconcini)
+    new_ingredients = ['tomatoes', 'garlic', 'peppercorn']
+    recipe_count = self.recipedb.__len__()
+    ingredient_count = self.boconcini['ingredients'].__len__()
 
-    doc = self.recipedb.get_doc(self.boconcini['name'])
-    self.assertEqual(doc['ingredients'].__len__(), self.boconcini['ingredients'].__len__())
+    for ingredient in new_ingredients:
+      self.boconcini['ingredients'].append(ingredient)
+      ingredient_count = ingredient_count + 1
+      self.assertEquals(self.boconcini['ingredients'].__len__(), ingredient_count)
+
+      self.recipedb.add(self.boconcini)
+      self.assertEquals(self.recipedb.__len__(), recipe_count)
+
+      doc = self.recipedb.get_doc(self.boconcini['name'])
+      self.assertEqual(doc['ingredients'].__len__(), self.boconcini['ingredients'].__len__())
 
   @unittest.skip('none')
   def test_list(self):
@@ -61,6 +82,8 @@ class RecipeTest(unittest.TestCase):
   def test_delete(self):
     pass
 
+  def test_to_tasks(self):
+    pass
 
 
 
