@@ -5,7 +5,7 @@ import sys
 class MenuTest(unittest.TestCase):
   menu = {}
   def setUp(self):
-    logging.basicConfig (stream = sys.stderr)
+    logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.INFO)
     log = logging.getLogger ("MenuTest").setLevel(logging.DEBUG)
     self.menu = {
         'schedule':  [

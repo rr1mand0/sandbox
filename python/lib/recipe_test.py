@@ -1,3 +1,4 @@
+import os
 import service
 import json
 import couch
@@ -98,6 +99,5 @@ class RecipeTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  logging.basicConfig(filename='/tmp/recipe.log', level=logging.DEBUG)
-  #logging.basicConfig(level=logging.DEBUG)
+  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.INFO)
   unittest.main()

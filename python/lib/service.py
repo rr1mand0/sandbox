@@ -215,6 +215,10 @@ class GTask(GoogleService):
     return items.__len__()
 
 
+class GCalendar(GoogleService):
+  def __init__(self):
+      self.calendar = GoogleService.get_calendar()
+
 class GTaskList(GoogleService):
   def __init__(self):
     self.tasks = GoogleService.get_tasks()

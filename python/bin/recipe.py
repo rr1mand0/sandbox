@@ -56,12 +56,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    #print args.add
-    
     return args.func(args)
 
-  logging.basicConfig(filename='/tmp/recipe.log', level=logging.INFO)
-  logging.info('Started')
+  logging.basicConfig(filename='%s/recipe.log' % os.environ['LOG_DIR'], level=logging.INFO)
   sys.exit(run())
-  logging.info('Finished')
 

@@ -1,3 +1,4 @@
+import os
 import couch
 import logging
 import json
@@ -53,12 +54,11 @@ class GTaskTest(unittest.TestCase):
       newtask = {
         'title': 'check me %d' % i
       }
-      print 'inserting: %s' % newtask['title']
       taskfd.insert(newtask)
 
       # make sure we found it
-      #task = taskfd.get_by_title(newtask['title'])
-      #self.assertEquals(task, {})
+      task = taskfd.get_by_title(newtask['title'])
+      self.assertIsNotNone(task)
 
       # now delete it
       taskfd.delete_by_title(newtask['title'])
@@ -75,5 +75,5 @@ class GTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  logging.basicConfig(filename='/tmp/service_test.log', level=logging.INFO)
+  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.INFO)
   unittest.main()

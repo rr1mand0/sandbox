@@ -1,4 +1,6 @@
+export APP_ROOT=`pwd`
 export PYTHONSTARTUP=/Users/raymundrimando/.pythonstartup
-export PYTHONPATH=$PYTHONPATH:`pwd`/python/lib:`pwd`/tasks-v1-python-cmd-line
-export PATH=$PATH:`pwd`/python/bin
+export PYTHONPATH=$PYTHONPATH:$APP_ROOT/python/lib:$APP_ROOT/tasks-v1-python-cmd-line
+export PATH=$PATH:$APP_ROOT/python/bin
+export LOG_DIR=$APP_ROOT/log
 
