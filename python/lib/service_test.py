@@ -1,9 +1,11 @@
+import couch
 import logging
 import json
 import unittest
 import service
 NEW_TASKLIST = 'unittest'
-
+SERVER = 'http://localhost:5984'
+DBNAME = 'recipegtasktest'
 
 class RecipeGTaskTest(unittest.TestCase):
   def test_couch_to_gtask(self):

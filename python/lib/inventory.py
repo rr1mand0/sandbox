@@ -1,11 +1,13 @@
 from couch import *
 
 class Dictionary(Couch):
-  def __init__(self, name='dictionary', server='http://localhost:5984'):
-    Couch.__init__(self, name, server=server)
+  #def __init__(self, 'http://localhost:5984', 'dictionary'):
+  def __init__(self, server, dbname):
+    Couch.__init__(self, server, dbname)
 
-  def size(self):
-    return 
+  def __len__(self):
+    return self.db.__len__()
+
   def addTerm(self, term):
     if term:
       self.db.save (
