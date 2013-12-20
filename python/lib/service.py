@@ -28,6 +28,7 @@ To get detailed log output run:
   $ python sample.py --logging_level=DEBUG
 """
 
+import logging
 import httplib2
 import os
 import pprint
@@ -49,53 +50,67 @@ FLOW = OAuth2WebServerFlow(
 
 
 class GoogleService(object):
-  service_list = {
-    "tasks": {
-      "name": "tasks",
-      "version": "v1",
-      "storage_file": "tasks.dat",
-      "store": None
-    },
-    'calendar': {
-      "name": "calendar",
-      "version": "v3",
-      "storage_file": "calendar.dat",
-      "store": None
-    }
-  }
-  def _init_service(self, name):
-    task_storage = Storage(self.service_list[name]['storage_file'])
+  task = None
+  calendar = None
+
+  @staticmethod
+  def _init_service(gservice):
+    logging.info ('Initializing: %s' % json.dumps(gservice, indent=2))
+    task_storage = Storage(gservice['storage_file'])
     credentials = task_storage.get()
 
-    print ('Initializing: %s' % json.dumps(self.service_list[name]))
     if credentials is None or credentials.invalid == True:
       credentials = run(FLOW, task_storage)
 
     http = httplib2.Http()
     http = credentials.authorize(http)
 
-    version = self.service_list[name]['version']
-    service = build(serviceName=self.service_list[name]['name'], 
+    version = gservice['version']
+    service = build(serviceName=gservice['name'], 
         version=version, http=http, developerKey='')
 
-    self.service_list[name]['store'] = service
-    print ("initialized %s" % name)
+    gservice['store'] = service
+    logging.debug ("initialized %s" % gservice['name'])
+    return service
 
-  def get_store(self, name):
-    return self.service_list[name]['store']
+  @classmethod
+  def get_tasks(cls):
+    task_service = {
+      'name': 'tasks',
+      'version': 'v1',
+      'storage_file': 'tasks.dat',
+      'store': None
+    }
+    if not cls.task:
+      cls.task = cls._init_service(task_service)
+    return cls.task 
 
-  def __init__(self):
+  @classmethod
+  def get_calendar():
+    calendar_service = {
+      'name': 'calendar',
+      'version': 'v3',
+      'storage_file': 'calendar.dat',
+      'store': None
+    }
+    if not cls.calendar:
+      cls.calendar = cls._init_service(calendar_service)
+    return cls.calendar 
+
+  def get_store(self):
+    return service_list['store']
+
+  def __init__(self, service_list):
+    self._init_service(service_list)
     self.task_service = None
     self.calendar_service = None
-    for name, value in self.service_list.items():
-      self._init_service(name)
 
   def get_calendar_list(self):
     page_token = None
     while True:
       calendar_list = self.get_store('calendar').calendarList().list(pageToken=page_token).execute()
       for calendar_list_entry in calendar_list['items']:
-        print calendar_list_entry['summary']
+        logging.debug ('get_calendar_list: %s' % (calendar_list_entry['summary']))
       page_token = calendar_list.get('nextPageToken')
       if not page_token:
         break
@@ -123,7 +138,7 @@ class GoogleService(object):
 
   def get_calendar_dict_from_name(self, name):
     id = self.get_calendar_id_by_name (name)
-    print ("id: %s" % id)
+    logging.debug ("id: %s" % id)
     if id:
       return self.get_calendar_service().calendars().get(calendarId=id).execute()
     return None
@@ -136,19 +151,19 @@ class GoogleService(object):
       while True:
         events = self.get_calendar_service().events().list(calendarId=id, pageToken=page_token).execute()
         all_events = all_events + events['items']
-        print ("received %d events %d" % (events['items'].__len__(), all_events.__len__()))
+        logging.debug ("received %d events %d" % (events['items'].__len__(), all_events.__len__()))
         
         page_token = events.get('nextPageToken')
         if not page_token:
           break
-      print ("returning %d items" % all_events.__len__())
+      logging.debug ("returning %d items" % all_events.__len__())
       return all_events
     return None
 
   def import_events_to_couchdb(self, server, name):
     import couchdb
     couch = couchdb.Server(server)
-    print ('Creating db:%s on server:%s' %(name, server))
+    logging.debug ('Creating db:%s on server:%s' %(name, server))
 
     # try and create a database
     try:
@@ -160,10 +175,56 @@ class GoogleService(object):
     events = self.get_calendar_events(name)
 
     for event in events:
-      print event
+      logging.debug ('%s' % event)
       db.save(event)
 
     fd = open ("events.json", 'w')
     fd.write(json.dumps({'items':events}, indent=2))
     fd.close()
     
+class GTask(GoogleService):
+  def __init__(self, id = None):
+    self.task = GoogleService.get_tasks()
+    #self.id = id
+
+  def insert(self, task):
+    print self.tasks.task().insert(tasklist=self.id, body=task).execute()
+
+class GTaskList(GoogleService):
+  def __init__(self):
+    self.tasks = GoogleService.get_tasks()
+
+  def tasklist_create(self, tasklist):
+    _list = self.tasklist_get_list_by_name(tasklist['title'])
+    if _list:
+      return _list
+    else:
+      return self.tasks.tasklists().insert(body=tasklist).execute()
+
+  def tasklist_delete(self, listname):
+    tasklist = self.tasklist_get_list_by_name(listname)
+    if tasklist:
+      logging.debug ('Deleting tasklist with id=%s\n%s' % (tasklist['id'], json.dumps(tasklist, indent=2)))
+      return self.tasks.tasklists().delete(tasklist=tasklist['id']).execute()
+
+  def tasklist_get_tasklist(self):
+    return self.tasks.tasklists().list().execute()['items']
+
+  def tasklist_get_list_by_name(self, name):
+    lists = self.tasklist_get_tasklist()
+    for _list in lists:
+      logging.debug ("tasklist_get_list_by_name: %s == %s" % (name, _list['title']))
+      if _list['title'] == name:
+        return _list
+    return {}
+
+      
+  def tasklist_exists(self, listname):
+    if self.tasklist_get_list_by_name(listname):
+      logging.debug ('tasklist_exists: found %s' % listname)
+      return True
+    return False
+
+  def create_task_list(self, name):
+    pass
+
