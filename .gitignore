@@ -5,3 +5,4 @@
 3/node/npm-debug.log
 *.passed
 .sconsign.dblite
+log/*

@@ -86,7 +86,7 @@ class GoogleService(object):
     return cls.task 
 
   @classmethod
-  def get_calendar():
+  def get_calendar(cls):
     calendar_service = {
       'name': 'calendar',
       'version': 'v3',
@@ -105,43 +105,12 @@ class GoogleService(object):
     self.task_service = None
     self.calendar_service = None
 
-  def get_calendar_list(self):
-    page_token = None
-    while True:
-      calendar_list = self.get_store('calendar').calendarList().list(pageToken=page_token).execute()
-      for calendar_list_entry in calendar_list['items']:
-        logging.debug ('get_calendar_list: %s' % (calendar_list_entry['summary']))
-      page_token = calendar_list.get('nextPageToken')
-      if not page_token:
-        break
-
   def get_task_service(self):
     return self.get_store('tasks')
       
   def get_calendar_service(self):
     return self.get_store('calendar')
 
-  def get_calendar_by_name(self, name):
-    cal = self.get_calendar_service()
-    cal_list = cal.calendarList().list().execute()
-
-    for item in cal_list['items']:
-      if item['summary'] == name:
-        return item
-    return None
-
-  def get_calendar_id_by_name(self, name):
-    calendar = self.get_calendar_by_name(name)
-    if calendar:
-      return calendar['id']
-    return None
-
-  def get_calendar_dict_from_name(self, name):
-    id = self.get_calendar_id_by_name (name)
-    logging.debug ("id: %s" % id)
-    if id:
-      return self.get_calendar_service().calendars().get(calendarId=id).execute()
-    return None
 
   def get_calendar_events(self, name):
     id = self.get_calendar_id_by_name (name)
@@ -182,11 +151,65 @@ class GoogleService(object):
     fd.write(json.dumps({'items':events}, indent=2))
     fd.close()
     
+class GCalendarList(GoogleService):
+  def __init__(self):
+    self.calendar = GoogleService.get_calendar()
+
+  def get_calendarList_item_by_name(self, name):
+    calendarlist = self.get_calendar_list()
+    for calendarListItem in calendarlist:
+      if calendarListItem['summary'] == name:
+        return calendarListItem
+    return {}
+
+  def exists(self, name):
+    if self.get_calendarList_item_by_name(name):
+      return True
+    return False
+
+  def create(self, calendarList_name):
+    _item = self.get_calendarList_item_by_name(calendarList_name)
+    if not _item:
+      _item = self.calendar.calendarList().insert(body={'id': calendarList_name}).execute()
+    return _item
+
+  def get_calendar_list(self):
+    page_token = None
+    while True:
+      calendar_list = self.calendar.calendarList().list(pageToken=page_token).execute()
+      for calendar_list_entry in calendar_list['items']:
+        logging.debug ('get_calendar_list: %s' % (calendar_list_entry['summary']))
+      page_token = calendar_list.get('nextPageToken')
+      if not page_token:
+        break
+    return calendar_list['items']
+
+  def get_calendar_by_name(self, name):
+    cal_list = self.calendar.calendarList().list().execute()
+
+    for item in cal_list['items']:
+      if item['summary'] == name:
+        return item
+    return None
+
+  def get_calendar_id_by_name(self, name):
+    calendar = self.get_calendar_by_name(name)
+    if calendar:
+      return calendar['id']
+    return None
+
+  def get_calendar_dict_from_name(self, name):
+    id = self.get_calendar_id_by_name (name)
+    logging.debug ("id: %s" % id)
+    if id:
+      return self.calendar.calendars().get(calendarId=id).execute()
+    return None
+
 class GTask(GoogleService):
   def __init__(self, id = None):
     self.task = GoogleService.get_tasks()
     self.id = id
-    print "Task: %s" % self.list()
+    logging.debug ("Task: %s" % self.list())
 
   def insert(self, task):
     self.task.tasks().insert(tasklist=self.id, body=task).execute()
@@ -207,7 +230,7 @@ class GTask(GoogleService):
     taskid = self.get_by_title(title)
     if taskid:
       rc = self.task.tasks().delete(tasklist=self.id, task=taskid['id']).execute()
-      print ('[%s] deleting task id:%s title:\'%s\'' %
+      logging.debug ('[%s] deleting task id:%s title:\'%s\'' %
           (rc, taskid['id'], taskid['title']))
 
   def __len__(self):
@@ -215,20 +238,15 @@ class GTask(GoogleService):
     return items.__len__()
 
 
-class GCalendar(GoogleService):
-  def __init__(self):
-      self.calendar = GoogleService.get_calendar()
-
 class GTaskList(GoogleService):
   def __init__(self):
     self.tasks = GoogleService.get_tasks()
 
   def create(self, tasklist):
     _list = self.get_list_by_name(tasklist['title'])
-    if _list:
-      return _list
-    else:
-      return self.tasks.tasklists().insert(body=tasklist).execute()
+    if not _list:
+      _list = self.tasks.tasklists().insert(body=tasklist).execute()
+    return _list
 
   def delete(self, listname):
     tasklist = self.get_list_by_name(listname)

@@ -1,12 +1,24 @@
+import sys
 import os
 import couch
 import logging
 import json
 import unittest
 import service
-NEW_TASKLIST = 'unittest'
+UNITTEST_TASK = 'unittest-task'
+UNITTEST_CALENDAR = 'unittest-calendar'
 SERVER = 'http://localhost:5984'
 DBNAME = 'recipegtasktest'
+
+class GCalendarTest(unittest.TestCase):
+  def test_create_calendar(self):
+    self.calendarListFd = service.GCalendarList()
+    if self.calendarListFd.exists(UNITTEST_CALENDAR):
+      self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
+    else:
+      self.calendar = self.calendarListFd.create(UNITTEST_CALENDAR)
+
+    self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
 
 class RecipeGTaskTest(unittest.TestCase):
   def test_couch_to_gtask(self):
@@ -20,25 +32,25 @@ class RecipeGTaskTest(unittest.TestCase):
       ]
     }
     self.tasklistfd = service.GTaskList()
-    self.tasklist = self.tasklistfd.get_list_by_name(NEW_TASKLIST)
+    self.tasklist = self.tasklistfd.get_list_by_name(UNITTEST_TASK)
 
 class GTaskTest(unittest.TestCase):
   new_tasklist = {
-    'title': NEW_TASKLIST
+    'title': UNITTEST_TASK
   }
 
   def setUp(self):
     self.tasklistfd = service.GTaskList()
-    if self.tasklistfd.exists(NEW_TASKLIST):
-      self.tasklist = self.tasklistfd.get_list_by_name(NEW_TASKLIST)
+    if self.tasklistfd.exists(UNITTEST_TASK):
+      self.tasklist = self.tasklistfd.get_list_by_name(UNITTEST_TASK)
     else:
       self.tasklist = self.tasklistfd.create(self.new_tasklist)
-    self.assertTrue(self.tasklistfd.exists(NEW_TASKLIST))
+    self.assertTrue(self.tasklistfd.exists(UNITTEST_TASK))
 
   
   def tearDown(self):
-    #self.tasklistfd.delete(self.new_tasklist['title'])
-    #self.assertFalse(self.tasklistfd.exists(NEW_TASKLIST))
+    self.tasklistfd.delete(self.new_tasklist['title'])
+    self.assertFalse(self.tasklistfd.exists(UNITTEST_TASK))
     pass
 
   def test_one(self):
@@ -68,6 +80,7 @@ class GTaskTest(unittest.TestCase):
     taskfd = service.GTask(id = self.tasklist['id'])
     self.assertIsNotNone(taskfd.list())
 
+
   @unittest.skip ('')
   def test_pass(self):
     self.assertTrue(True)
@@ -75,5 +88,8 @@ class GTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.INFO)
-  unittest.main()
+  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
+  sys.exit(unittest.main())
+  #suite = unittest.TestLoader().loadTestsFromTestCase(GCalendarTest)
+  #sys.exit(unittest.TextTestRunner(verbosity=2).run(suite))
+  
