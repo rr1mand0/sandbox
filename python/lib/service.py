@@ -185,43 +185,72 @@ class GoogleService(object):
 class GTask(GoogleService):
   def __init__(self, id = None):
     self.task = GoogleService.get_tasks()
-    #self.id = id
+    self.id = id
+    print "Task: %s" % self.list()
 
   def insert(self, task):
-    print self.tasks.task().insert(tasklist=self.id, body=task).execute()
+    self.task.tasks().insert(tasklist=self.id, body=task).execute()
+
+  def list(self):
+    tasks = self.task.tasks().list(tasklist=self.id).execute()
+    if tasks.has_key('items'):
+      return tasks['items']
+    return {}
+
+  def get_by_title(self, title):
+    for task in self.list():
+      if task['title'] == title:
+        return task
+    return {}
+
+  def delete_by_title(self, title):
+    taskid = self.get_by_title(title)
+    if taskid:
+      rc = self.task.tasks().delete(tasklist=self.id, task=taskid['id']).execute()
+      print ('[%s] deleting task id:%s title:\'%s\'' %
+          (rc, taskid['id'], taskid['title']))
+
+  def __len__(self):
+    items = self.list()
+    return items.__len__()
+
 
 class GTaskList(GoogleService):
   def __init__(self):
     self.tasks = GoogleService.get_tasks()
 
-  def tasklist_create(self, tasklist):
-    _list = self.tasklist_get_list_by_name(tasklist['title'])
+  def create(self, tasklist):
+    _list = self.get_list_by_name(tasklist['title'])
     if _list:
       return _list
     else:
       return self.tasks.tasklists().insert(body=tasklist).execute()
 
-  def tasklist_delete(self, listname):
-    tasklist = self.tasklist_get_list_by_name(listname)
+  def delete(self, listname):
+    tasklist = self.get_list_by_name(listname)
     if tasklist:
       logging.debug ('Deleting tasklist with id=%s\n%s' % (tasklist['id'], json.dumps(tasklist, indent=2)))
       return self.tasks.tasklists().delete(tasklist=tasklist['id']).execute()
 
-  def tasklist_get_tasklist(self):
+  def get_tasklist(self):
     return self.tasks.tasklists().list().execute()['items']
+    #tasklist =  self.tasks.tasklists().list().execute()
+    #if tasklist.has_key('items'):
+      #return tasklist['items']
+    #return {}
 
-  def tasklist_get_list_by_name(self, name):
-    lists = self.tasklist_get_tasklist()
+  def get_list_by_name(self, name):
+    lists = self.get_tasklist()
     for _list in lists:
-      logging.debug ("tasklist_get_list_by_name: %s == %s" % (name, _list['title']))
+      logging.debug ("get_list_by_name: %s == %s" % (name, _list['title']))
       if _list['title'] == name:
         return _list
     return {}
 
       
-  def tasklist_exists(self, listname):
-    if self.tasklist_get_list_by_name(listname):
-      logging.debug ('tasklist_exists: found %s' % listname)
+  def exists(self, listname):
+    if self.get_list_by_name(listname):
+      logging.debug ('exists: found %s' % listname)
       return True
     return False
 

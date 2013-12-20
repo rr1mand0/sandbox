@@ -1,3 +1,4 @@
+import service
 import json
 import couch
 import logging
@@ -73,6 +74,15 @@ class RecipeTest(unittest.TestCase):
 
       doc = self.recipedb.get_doc(self.boconcini['name'])
       self.assertEqual(doc['ingredients'].__len__(), self.boconcini['ingredients'].__len__())
+
+  def test_export_to_gtask(self):
+    unitest_tasklist_name = 'unittest'
+    tasklist = service.GTaskList().get_list_by_name(unitest_tasklist_name)
+    taskfd = service.GTask(id = tasklist['id'])
+
+    task_len =  taskfd.__len__()
+    self.recipedb.export_to_gtask(self.boconcini['name'], unitest_tasklist_name)
+    self.assertEquals(task_len + self.boconcini['ingredients'].__len__(),  taskfd.__len__())
 
   @unittest.skip('none')
   def test_list(self):

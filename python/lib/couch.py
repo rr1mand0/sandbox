@@ -3,6 +3,7 @@ import re
 import sys
 import couchdb
 import json
+import service
 
 class Couch(object):
   def __init__(self, server, dbname, create=False):
@@ -132,6 +133,14 @@ class Recipes(Couch):
   def __init__(self, server='http://localhost:5984', dbname='recipes'):
     Couch.__init__(self, server, dbname)
     self.recipes = {}
+
+  def export_to_gtask(self, name, tl_name):
+    recipe = self.get_doc(name)
+    if recipe:
+      tasklist = service.GTaskList().get_list_by_name(tl_name)
+      taskfd = service.GTask(id = tasklist['id'])
+      for ingredient in recipe['ingredients']:
+        taskfd.insert({'title': ingredient})
 
   def add_with_ingredients (self, name, ingredients = []):
     self.add({
