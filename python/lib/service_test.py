@@ -10,16 +10,6 @@ UNITTEST_CALENDAR = 'unittest-calendar'
 SERVER = 'http://localhost:5984'
 DBNAME = 'recipegtasktest'
 
-class GCalendarTest(unittest.TestCase):
-  def test_create_calendar(self):
-    self.calendarListFd = service.GCalendarList()
-    if self.calendarListFd.exists(UNITTEST_CALENDAR):
-      self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
-    else:
-      self.calendar = self.calendarListFd.create(UNITTEST_CALENDAR)
-
-    self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
-
 class RecipeGTaskTest(unittest.TestCase):
   def test_couch_to_gtask(self):
     self.recipedb = couch.Recipes(server=SERVER, dbname=DBNAME)
@@ -90,6 +80,4 @@ class GTaskTest(unittest.TestCase):
 if __name__ == '__main__':
   logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
   sys.exit(unittest.main())
-  #suite = unittest.TestLoader().loadTestsFromTestCase(GCalendarTest)
-  #sys.exit(unittest.TextTestRunner(verbosity=2).run(suite))
   
