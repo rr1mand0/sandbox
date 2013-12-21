@@ -17,7 +17,7 @@ class GCalendarTest(unittest.TestCase):
 
     self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
   def tearDown(self):
-    self.calendarListFd.delete(self.new_tasklist['title'])
+    self.calendarListFd.delete(UNITTEST_CALENDAR)
     self.assertFalse(self.calendarListFd.exists(UNITTEST_CALENDAR))
 
   def test_create(self):

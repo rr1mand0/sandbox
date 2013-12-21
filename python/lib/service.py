@@ -167,6 +167,11 @@ class GCalendarList(GoogleService):
       return True
     return False
 
+  def delete(self, name):
+    _item = self.get_calendarList_item_by_name(name)
+    if _item:
+      self.calendar.calendarList().delete(calendarId = _item['id']).execute()
+
   def create(self, calendarList_name):
     _item = self.get_calendarList_item_by_name(calendarList_name)
     if not _item:
