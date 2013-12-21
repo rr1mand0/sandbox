@@ -172,10 +172,10 @@ class GCalendarList(GoogleService):
     if _item:
       self.calendar.calendarList().delete(calendarId = _item['id']).execute()
 
-  def create(self, calendarList_name):
-    _item = self.get_calendarList_item_by_name(calendarList_name)
+  def create(self, name):
+    _item = self.get_calendarList_item_by_name(name)
     if not _item:
-      _item = self.calendar.calendarList().insert(body={'id': calendarList_name}).execute()
+      _item = self.calendar.calendars().insert(body={'summary': name}).execute()
     return _item
 
   def get_calendar_list(self):

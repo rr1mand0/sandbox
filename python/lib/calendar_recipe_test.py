@@ -28,6 +28,6 @@ class ShoppingListCreator(unittest.TestCase):
     self.assertIsNotNone({})
 
 if __name__ == '__main__':
-  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.INFO)
+  logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
   sys.exit(unittest.main())
 
