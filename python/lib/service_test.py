@@ -22,7 +22,8 @@ class RecipeGTaskTest(unittest.TestCase):
       ]
     }
     self.tasklistfd = service.GTaskList()
-    self.tasklist = self.tasklistfd.get_list_by_name(UNITTEST_TASK)
+    self.tasklist = self.tasklistfd.get_item_by_name(UNITTEST_TASK)
+
 
 class GTaskTest(unittest.TestCase):
   new_tasklist = {
@@ -32,7 +33,7 @@ class GTaskTest(unittest.TestCase):
   def setUp(self):
     self.tasklistfd = service.GTaskList()
     if self.tasklistfd.exists(UNITTEST_TASK):
-      self.tasklist = self.tasklistfd.get_list_by_name(UNITTEST_TASK)
+      self.tasklist = self.tasklistfd.get_item_by_name(UNITTEST_TASK)
     else:
       self.tasklist = self.tasklistfd.create(self.new_tasklist)
     self.assertTrue(self.tasklistfd.exists(UNITTEST_TASK))
@@ -50,7 +51,7 @@ class GTaskTest(unittest.TestCase):
   def test_add_task(self):
     taskfd = service.GTask(id = self.tasklist['id'])
     task_len =  taskfd.__len__()
-    maxval = 10
+    maxval = 1
     for i in range(0, maxval):
       # insert a new task
       newtask = {
@@ -59,7 +60,7 @@ class GTaskTest(unittest.TestCase):
       taskfd.insert(newtask)
 
       # make sure we found it
-      task = taskfd.get_by_title(newtask['title'])
+      task = taskfd.get_item_by_name(newtask['title'])
       self.assertIsNotNone(task)
 
       # now delete it
@@ -68,7 +69,7 @@ class GTaskTest(unittest.TestCase):
     
   def test_list_tasks(self):
     taskfd = service.GTask(id = self.tasklist['id'])
-    self.assertIsNotNone(taskfd.list())
+    self.assertIsNotNone(taskfd.get_items())
 
 
   @unittest.skip ('')

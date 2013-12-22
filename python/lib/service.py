@@ -50,11 +50,10 @@ FLOW = OAuth2WebServerFlow(
 
 
 class GoogleService(object):
-  task = None
-  calendar = None
 
-  def __init__(self, gservice):
+  def __init__(self, gservice, label = 'title'):
     logging.info ('Initializing: %s' % json.dumps(gservice, indent=2))
+    self.label = label
     task_storage = Storage(gservice['storage_file'])
     credentials = task_storage.get()
 
@@ -70,6 +69,25 @@ class GoogleService(object):
 
     gservice['store'] = self.gservice
     logging.debug ("initialized %s" % gservice['name'])
+
+  def exists(self, item_name):
+    if self.get_item_by_name(item_name):
+      logging.debug ('exists: found %s' % item_name)
+      return True
+    return False
+
+  def get_items(self):
+    items =  self._function.list().execute()
+    if items.has_key('items'):
+      return items['items']
+    return {}
+
+  def get_item_by_name(self, name):
+    items = self.get_items()
+    for item in items:
+      if item[self.label] == name:
+        return item
+    return {}
 
     
 class GCalendarWrapper(GoogleService):
@@ -194,71 +212,59 @@ class GTask(GTaskWrapper):
   def __init__(self, id = None):
     GTaskWrapper.__init__(self)
     self.id = id
+    self._function = self.gservice.tasks()
 
   def insert(self, task):
     self.gservice.tasks().insert(tasklist=self.id, body=task).execute()
 
-  def list(self):
-    tasks = self.gservice.tasks().list(tasklist=self.id).execute()
-    if tasks.has_key('items'):
-      return tasks['items']
+  def get_items(self):
+    items = self._function.list(tasklist=self.id).execute()
+    if items.has_key('items'):
+      return items['items']
     return {}
 
   def get_by_title(self, title):
-    for task in self.list():
-      if task['title'] == title:
+    for task in self.get_items():
+      if task[self.label] == title:
         return task
     return {}
 
   def delete_by_title(self, title):
-    taskid = self.get_by_title(title)
+    taskid = self.get_item_by_name(title)
     if taskid:
       rc = self.gservice.tasks().delete(tasklist=self.id, task=taskid['id']).execute()
       logging.debug ('[%s] deleting task id:%s title:\'%s\'' %
-          (rc, taskid['id'], taskid['title']))
+          (rc, taskid['id'], taskid[self.label]))
 
   def __len__(self):
-    items = self.list()
+    items = self.get_items()
     return items.__len__()
 
 class GTaskList(GTaskWrapper):
   def __init__(self):
     GTaskWrapper.__init__(self)
+    self._function = self.gservice.tasklists()
 
   def create(self, tasklist):
-    _list = self.get_list_by_name(tasklist['title'])
+    _list = self.get_item_by_name(tasklist[self.label])
     if not _list:
       _list = self.gservice.tasklists().insert(body=tasklist).execute()
     return _list
 
   def delete(self, listname):
-    tasklist = self.get_list_by_name(listname)
+    tasklist = self.get_item_by_name(listname)
     if tasklist:
       logging.debug ('Deleting tasklist with id=%s\n%s' % (tasklist['id'], json.dumps(tasklist, indent=2)))
       return self.gservice.tasklists().delete(tasklist=tasklist['id']).execute()
 
-  def get_tasklist(self):
-    return self.gservice.tasklists().list().execute()['items']
-    #tasklist =  self.gservice.tasklists().list().execute()
-    #if tasklist.has_key('items'):
-      #return tasklist['items']
-    #return {}
-
-  def get_list_by_name(self, name):
-    lists = self.get_tasklist()
-    for _list in lists:
-      logging.debug ("get_list_by_name: %s == %s" % (name, _list['title']))
-      if _list['title'] == name:
-        return _list
-    return {}
-
-      
+  '''
   def exists(self, listname):
-    if self.get_list_by_name(listname):
+    if self.get_item_by_name(listname):
       logging.debug ('exists: found %s' % listname)
       return True
     return False
 
   def create_task_list(self, name):
     pass
+  '''
 
