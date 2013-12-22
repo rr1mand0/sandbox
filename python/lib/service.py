@@ -103,63 +103,28 @@ class GCalendarWrapper(GoogleService):
     GoogleService.__init__(self, cal_dict, label='summary')
 
 class GCalendar(GCalendarWrapper):
-  def __init__(self):
+  def __init__(self, name):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendars()
+    self.calendar = self._function.insert(body={'summary': name}).execute()
 
-  def insert(self, name):
-    return self._function.insert(body={'summary': name}).execute()
+  def insert_event(self, event):
+    return self.gservice.events().insert(calendarId=self.calendar['id'], body=event).execute()
+  
+class GEvents(GCalendarWrapper):
+  def __init__(self, calendarId):
+    GCalendarWrapper.__init__(self)
+    self._function = self.gservice.events()
+    self.id = calendarId
+
+  def insert(self, event):
+    return self._function.insert(event).execute()
+
 
 class GCalendarList(GCalendarWrapper):
   def __init__(self):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendarList()
-
-  '''
-  def get_item_by_name(self, name):
-    calendarlist = self.get_calendar_list()
-    for calendarListItem in calendarlist:
-      if calendarListItem['summary'] == name:
-        return calendarListItem
-    return {}
-
-  def exists(self, name):
-    if self.get_item_by_name(name):
-      return True
-    return False
-
-  def get_calendar_list(self):
-    page_token = None
-    while True:
-      calendar_list = self.gservice.calendarList().list(pageToken=page_token).execute()
-      for calendar_list_entry in calendar_list['items']:
-        logging.debug ('get_calendar_list: %s' % (calendar_list_entry['summary']))
-      page_token = calendar_list.get('nextPageToken')
-      if not page_token:
-        break
-    return calendar_list['items']
-
-  def get_calendar_by_name(self, name):
-    cal_list = self.gservice.calendarList().list().execute()
-
-    for item in cal_list['items']:
-      if item['summary'] == name:
-        return item
-    return None
-
-  def get_calendar_id_by_name(self, name):
-    calendar = self.get_calendar_by_name(name)
-    if calendar:
-      return calendar['id']
-    return None
-
-  def get_calendar_dict_from_name(self, name):
-    id = self.get_item_by_name (name)
-    logging.debug ("id: %s" % id)
-    if id:
-      return self.service.calendars().get(calendarId=id).execute()
-    return None
-  '''
 
   def delete(self, name):
     _item = self.get_item_by_name(name)

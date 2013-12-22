@@ -10,19 +10,36 @@ SERVER = 'http://localhost:5984'
 class GCalendarTest(unittest.TestCase):
   def setUp(self):
     self.calendarListFd = service.GCalendarList()
-    self.calendarFd = service.GCalendar()
 
     if self.calendarListFd.exists(UNITTEST_CALENDAR):
       self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
     else:
-      self.calendar = self.calendarFd.insert(UNITTEST_CALENDAR)
+      self.calendarFd = service.GCalendar(UNITTEST_CALENDAR)
 
     self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
   def tearDown(self):
     self.calendarListFd.delete(UNITTEST_CALENDAR)
     self.assertFalse(self.calendarListFd.exists(UNITTEST_CALENDAR))
 
-  def test_create(self):
+  def test_create_event(self):
+    event = {
+      'summary': 'Appointment',
+      'location': 'Somewhere',
+      'start': {
+        'dateTime': '2011-06-03T10:00:00.000-07:00'
+      },
+      'end': {
+        'dateTime': '2011-06-03T10:25:00.000-07:00'
+      },
+      'attendees': [
+        {
+          'email': 'raymund.rimando@gmail.com',
+        }
+      ]
+    }
+    
+    self.calendarFd.insert_event(event)
+    #eventFd = service.GEvents()
     self.assertTrue(True)
 
 class ShoppingListCreator(unittest.TestCase):
