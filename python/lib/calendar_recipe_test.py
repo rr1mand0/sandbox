@@ -15,7 +15,7 @@ class GCalendarTest(unittest.TestCase):
     if self.calendarListFd.exists(UNITTEST_CALENDAR):
       self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
     else:
-      self.calendar = self.calendarFd.create(UNITTEST_CALENDAR)
+      self.calendar = self.calendarFd.insert(UNITTEST_CALENDAR)
 
     self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
   def tearDown(self):

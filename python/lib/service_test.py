@@ -35,7 +35,7 @@ class GTaskTest(unittest.TestCase):
     if self.tasklistfd.exists(UNITTEST_TASK):
       self.tasklist = self.tasklistfd.get_item_by_name(UNITTEST_TASK)
     else:
-      self.tasklist = self.tasklistfd.create(self.new_tasklist)
+      self.tasklist = self.tasklistfd.insert(self.new_tasklist)
     self.assertTrue(self.tasklistfd.exists(UNITTEST_TASK))
 
   
@@ -64,7 +64,7 @@ class GTaskTest(unittest.TestCase):
       self.assertIsNotNone(task)
 
       # now delete it
-      taskfd.delete_by_title(newtask['title'])
+      taskfd.delete(newtask['title'])
       self.assertEquals(task_len,  taskfd.__len__())
     
   def test_list_tasks(self):

@@ -107,7 +107,7 @@ class GCalendar(GCalendarWrapper):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendars()
 
-  def create(self, name):
+  def insert(self, name):
     return self._function.insert(body={'summary': name}).execute()
 
 class GCalendarList(GCalendarWrapper):
@@ -115,7 +115,8 @@ class GCalendarList(GCalendarWrapper):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendarList()
 
-  def get_calendarList_item_by_name(self, name):
+  '''
+  def get_item_by_name(self, name):
     calendarlist = self.get_calendar_list()
     for calendarListItem in calendarlist:
       if calendarListItem['summary'] == name:
@@ -123,14 +124,9 @@ class GCalendarList(GCalendarWrapper):
     return {}
 
   def exists(self, name):
-    if self.get_calendarList_item_by_name(name):
+    if self.get_item_by_name(name):
       return True
     return False
-
-  def delete(self, name):
-    _item = self.get_calendarList_item_by_name(name)
-    if _item:
-      self.gservice.calendarList().delete(calendarId = _item['id']).execute()
 
   def get_calendar_list(self):
     page_token = None
@@ -158,14 +154,20 @@ class GCalendarList(GCalendarWrapper):
     return None
 
   def get_calendar_dict_from_name(self, name):
-    id = self.get_calendar_id_by_name (name)
+    id = self.get_item_by_name (name)
     logging.debug ("id: %s" % id)
     if id:
       return self.service.calendars().get(calendarId=id).execute()
     return None
+  '''
+
+  def delete(self, name):
+    _item = self.get_item_by_name(name)
+    if _item:
+      self._function.delete(calendarId = _item['id']).execute()
 
   def get_calendar_events(self, name):
-    id = self.get_calendar_id_by_name (name)
+    id = self.get_item_by_name (name)
     if id:
       page_token = None
       all_events = []
@@ -234,8 +236,8 @@ class GTask(GTaskWrapper):
       return items['items']
     return {}
 
-  def delete_by_title(self, title):
-    taskid = self.get_item_by_name(title)
+  def delete(self, name):
+    taskid = self.get_item_by_name(name)
     if taskid:
       rc = self._function.delete(tasklist=self.id, task=taskid['id']).execute()
       logging.debug ('[%s] deleting task id:%s title:\'%s\'' %
@@ -246,26 +248,15 @@ class GTaskList(GTaskWrapper):
     GTaskWrapper.__init__(self)
     self._function = self.gservice.tasklists()
 
-  def create(self, tasklist):
+  def insert(self, tasklist):
     _list = self.get_item_by_name(tasklist[self.label])
     if not _list:
       _list = self.gservice.tasklists().insert(body=tasklist).execute()
     return _list
 
-  def delete(self, listname):
-    tasklist = self.get_item_by_name(listname)
-    if tasklist:
-      logging.debug ('Deleting tasklist with id=%s\n%s' % (tasklist['id'], json.dumps(tasklist, indent=2)))
-      return self.gservice.tasklists().delete(tasklist=tasklist['id']).execute()
+  def delete(self, name):
+    item = self.get_item_by_name(name)
+    if item:
+      return self._function.delete(tasklist=item['id']).execute()
 
-  '''
-  def exists(self, listname):
-    if self.get_item_by_name(listname):
-      logging.debug ('exists: found %s' % listname)
-      return True
-    return False
-
-  def create_task_list(self, name):
-    pass
-  '''
 
