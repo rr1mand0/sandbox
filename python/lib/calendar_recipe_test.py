@@ -9,7 +9,7 @@ SERVER = 'http://localhost:5984'
 
 class GCalendarTest(unittest.TestCase):
   def setUp(self):
-    self.calendarListFd = service.GCalendarList()
+    self.calendarListFd = service.GCalendar()
     if self.calendarListFd.exists(UNITTEST_CALENDAR):
       self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
     else:
