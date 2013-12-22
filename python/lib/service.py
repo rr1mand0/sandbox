@@ -89,6 +89,8 @@ class GoogleService(object):
         return item
     return {}
 
+  def __len__(self):
+    return self.get_items().__len__()
     
 class GCalendarWrapper(GoogleService):
   def __init__(self):
@@ -98,11 +100,20 @@ class GCalendarWrapper(GoogleService):
       'storage_file': 'calendar.dat',
       'store': None
     }
-    GoogleService.__init__(self, cal_dict)
+    GoogleService.__init__(self, cal_dict, label='summary')
 
 class GCalendar(GCalendarWrapper):
   def __init__(self):
     GCalendarWrapper.__init__(self)
+    self._function = self.gservice.calendars()
+
+  def create(self, name):
+    return self._function.insert(body={'summary': name}).execute()
+
+class GCalendarList(GCalendarWrapper):
+  def __init__(self):
+    GCalendarWrapper.__init__(self)
+    self._function = self.gservice.calendarList()
 
   def get_calendarList_item_by_name(self, name):
     calendarlist = self.get_calendar_list()
@@ -120,12 +131,6 @@ class GCalendar(GCalendarWrapper):
     _item = self.get_calendarList_item_by_name(name)
     if _item:
       self.gservice.calendarList().delete(calendarId = _item['id']).execute()
-
-  def create(self, name):
-    _item = self.get_calendarList_item_by_name(name)
-    if not _item:
-      _item = self.gservice.calendars().insert(body={'summary': name}).execute()
-    return _item
 
   def get_calendar_list(self):
     page_token = None
@@ -215,30 +220,26 @@ class GTask(GTaskWrapper):
     self._function = self.gservice.tasks()
 
   def insert(self, task):
-    self.gservice.tasks().insert(tasklist=self.id, body=task).execute()
+    """ 
+    override 
+    """
+    self._function.insert(tasklist=self.id, body=task).execute()
 
   def get_items(self):
+    """ 
+    override 
+    """
     items = self._function.list(tasklist=self.id).execute()
     if items.has_key('items'):
       return items['items']
     return {}
 
-  def get_by_title(self, title):
-    for task in self.get_items():
-      if task[self.label] == title:
-        return task
-    return {}
-
   def delete_by_title(self, title):
     taskid = self.get_item_by_name(title)
     if taskid:
-      rc = self.gservice.tasks().delete(tasklist=self.id, task=taskid['id']).execute()
+      rc = self._function.delete(tasklist=self.id, task=taskid['id']).execute()
       logging.debug ('[%s] deleting task id:%s title:\'%s\'' %
           (rc, taskid['id'], taskid[self.label]))
-
-  def __len__(self):
-    items = self.get_items()
-    return items.__len__()
 
 class GTaskList(GTaskWrapper):
   def __init__(self):

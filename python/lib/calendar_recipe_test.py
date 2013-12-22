@@ -9,11 +9,13 @@ SERVER = 'http://localhost:5984'
 
 class GCalendarTest(unittest.TestCase):
   def setUp(self):
-    self.calendarListFd = service.GCalendar()
+    self.calendarListFd = service.GCalendarList()
+    self.calendarFd = service.GCalendar()
+
     if self.calendarListFd.exists(UNITTEST_CALENDAR):
       self.calendar = self.calendarListFd.get_calendar_by_name(UNITTEST_CALENDAR)
     else:
-      self.calendar = self.calendarListFd.create(UNITTEST_CALENDAR)
+      self.calendar = self.calendarFd.create(UNITTEST_CALENDAR)
 
     self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
   def tearDown(self):
