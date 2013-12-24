@@ -7,7 +7,8 @@ from datetime import datetime
 from time import gmtime, strftime
 from dateutil.relativedelta import relativedelta
 
-UNITTEST_CALENDAR = 'Meds'
+UNITTEST_CALENDAR = 'unittest-calendar'
+UNITTEST_TASK = 'unittest-meals-task'
 SERVER = 'http://localhost:5984'
 
 class GMenuTest(unittest.TestCase):
@@ -55,6 +56,9 @@ class GMenuTest(unittest.TestCase):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertEqual(events.__len__(), self.meals.__len__()+1)
       
+  def test_calendar_events_to_task(self):
+    self.calendarFd.push_events_to_tasks(UNITTEST_TASK, start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
+
 if __name__ == '__main__':
   logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
   sys.exit(unittest.main())

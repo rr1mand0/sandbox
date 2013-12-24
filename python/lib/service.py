@@ -130,6 +130,11 @@ class GCalendar(GCalendarWrapper):
     for event in events:
       logging.debug('deleting event: %s %s' % (event['id'], event['summary']))
       self._events.delete(calendarId=self.calendar['id'], eventId=event['id']).execute()
+
+  def push_events_to_tasks(self, task, start_date=None, end_date=None):
+    events = self.get_events(start_date=start_date, end_date=end_date)
+    for event in events:
+      logging.debug('pushing event: %s %s' % (event['id'], event['summary']))
   
 class GEvents(GCalendarWrapper):
   def __init__(self, calendarId):
