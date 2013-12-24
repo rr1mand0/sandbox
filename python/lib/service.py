@@ -76,6 +76,9 @@ class GoogleService(object):
       return True
     return False
 
+  def delete(self, item_name):
+    self.get_item_by_name(item)
+
   def get_items(self):
     items =  self._function.list().execute()
     if items.has_key('items'):
@@ -106,6 +109,7 @@ class GCalendar(GCalendarWrapper):
   def __init__(self, name):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendars()
+    self._events = self.gservice.events()
     self.calendarListFd = GCalendarList()
 
     # initialize the calendar
@@ -114,7 +118,18 @@ class GCalendar(GCalendarWrapper):
       self.calendar = self._function.insert(body={'summary': name}).execute()
 
   def insert_event(self, event):
-    return self.gservice.events().insert(calendarId=self.calendar['id'], body=event).execute()
+    return self._events.insert(calendarId=self.calendar['id'], body=event).execute()
+
+  def get_events(self, start_date=None, end_date=None):
+    events = self._events.list(calendarId=self.calendar['id'], timeMin=start_date, timeMax=end_date).execute()['items']
+    logging.debug('get_events:\n %s' % json.dumps(events, indent=2))
+    return events
+
+  def delete_events(self, start_date=None, end_date=None):
+    events = self.get_events(start_date=start_date, end_date=end_date)
+    for event in events:
+      logging.debug('deleting event: %s %s' % (event['id'], event['summary']))
+      self._events.delete(calendarId=self.calendar['id'], eventId=event['id']).execute()
   
 class GEvents(GCalendarWrapper):
   def __init__(self, calendarId):
