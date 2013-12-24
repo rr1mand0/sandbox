@@ -16,10 +16,12 @@ class GCalendarTest(unittest.TestCase):
     self.calendarFd = service.GCalendar(UNITTEST_CALENDAR)
     self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
 
+  '''
   def tearDown(self):
     self.calendarListFd.delete(UNITTEST_CALENDAR)
     self.assertFalse(self.calendarListFd.exists(UNITTEST_CALENDAR))
     pass
+  '''
 
   def test_existing_calendar(self):
     self.assertIsNotNone(service.GCalendarList().exists("Menu"))

@@ -131,10 +131,17 @@ class GCalendar(GCalendarWrapper):
       logging.debug('deleting event: %s %s' % (event['id'], event['summary']))
       self._events.delete(calendarId=self.calendar['id'], eventId=event['id']).execute()
 
-  def push_events_to_tasks(self, task, start_date=None, end_date=None):
+  def push_events_to_tasks(self, tasklist_name, start_date=None, end_date=None):
+    taskfd = GTask(tasklist_name)
+
+    # push the meals into the tasklist
     events = self.get_events(start_date=start_date, end_date=end_date)
     for event in events:
-      logging.debug('pushing event: %s %s' % (event['id'], event['summary']))
+      new_task = {
+        'title': event['summary']
+      }
+      logging.debug('adding event to task: \n%s' % (json.dumps(new_task, indent=2)))
+      taskfd.insert(new_task)
   
 class GEvents(GCalendarWrapper):
   def __init__(self, calendarId):
@@ -206,7 +213,7 @@ class GTaskWrapper(GoogleService):
     GoogleService.__init__(self, task_dict)
 
 class GTask(GTaskWrapper):
-  def __init__(self, tasklist_name, id = None):
+  def __init__(self, tasklist_name):
     GTaskWrapper.__init__(self)
 
     tasklistFd = GTaskList()
@@ -232,12 +239,19 @@ class GTask(GTaskWrapper):
       return items['items']
     return {}
 
+  def delete_by_id(self, id):
+    logging.debug ('deleting task id:%s ' % (id))
+    return self._function.delete(tasklist=self.id, task=id).execute()
+
   def delete(self, name):
     taskid = self.get_item_by_name(name)
     if taskid:
-      rc = self._function.delete(tasklist=self.id, task=taskid['id']).execute()
-      logging.debug ('[%s] deleting task id:%s title:\'%s\'' %
-          (rc, taskid['id'], taskid[self.label]))
+      rc = self.delete_by_id(taskid['id'])
+
+  def clear(self):
+    items = self.get_items()
+    for item in items:
+      rc = self.delete_by_id(item['id'])
 
 class GTaskList(GTaskWrapper):
   def __init__(self):
