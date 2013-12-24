@@ -49,7 +49,7 @@ class GTaskTest(unittest.TestCase):
 
   #@unittest.skip('wip')
   def test_add_task(self):
-    taskfd = service.GTask(id = self.tasklist['id'])
+    taskfd = service.GTask(UNITTEST_TASK)
     task_len =  taskfd.__len__()
     maxval = 1
     for i in range(0, maxval):
@@ -68,7 +68,7 @@ class GTaskTest(unittest.TestCase):
       self.assertEquals(task_len,  taskfd.__len__())
     
   def test_list_tasks(self):
-    taskfd = service.GTask(id = self.tasklist['id'])
+    taskfd = service.GTask(UNITTEST_TASK)
     self.assertIsNotNone(taskfd.get_items())
 
 

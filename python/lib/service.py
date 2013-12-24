@@ -206,9 +206,15 @@ class GTaskWrapper(GoogleService):
     GoogleService.__init__(self, task_dict)
 
 class GTask(GTaskWrapper):
-  def __init__(self, id = None):
+  def __init__(self, tasklist_name, id = None):
     GTaskWrapper.__init__(self)
-    self.id = id
+
+    tasklistFd = GTaskList()
+    self.tasklist = tasklistFd.get_item_by_name(tasklist_name)
+    if not self.tasklist:
+      self.tasklist = tasklistFd.insert({'title': tasklist_name})
+
+    self.id = self.tasklist['id']
     self._function = self.gservice.tasks()
 
   def insert(self, task):
