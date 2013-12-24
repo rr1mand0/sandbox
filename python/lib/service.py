@@ -106,7 +106,12 @@ class GCalendar(GCalendarWrapper):
   def __init__(self, name):
     GCalendarWrapper.__init__(self)
     self._function = self.gservice.calendars()
-    self.calendar = self._function.insert(body={'summary': name}).execute()
+    self.calendarListFd = GCalendarList()
+
+    # initialize the calendar
+    self.calendar = self.calendarListFd.get_item_by_name(name)
+    if not self.calendar:
+      self.calendar = self._function.insert(body={'summary': name}).execute()
 
   def insert_event(self, event):
     return self.gservice.events().insert(calendarId=self.calendar['id'], body=event).execute()
