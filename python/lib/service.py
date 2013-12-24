@@ -270,3 +270,8 @@ class GTaskList(GTaskWrapper):
       return self._function.delete(tasklist=item['id']).execute()
 
 
+class ShoppingGenerator(object):
+  def __init__(self, calendarName, taskName):
+    self.calFd = GCalendar(calendarName)
+    self.taskFd = GTask(taskName)
+

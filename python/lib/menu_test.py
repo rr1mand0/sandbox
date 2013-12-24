@@ -24,32 +24,30 @@ class GMenuTest(unittest.TestCase):
     {'start':{'date': '2013-12-09'},'end':{'date': '2013-12-09'}, 'summary': 'rib eye; mashed potatoes; green beans'}
   ]
 
+  calendarFd = None
+ 
   def setUp(self):
-    self.calendarListFd = service.GCalendarList()
-    #self.calendarListFd.delete(UNITTEST_CALENDAR)
+    self.calendarFd = service.GCalendar(UNITTEST_CALENDAR)
+    self.assertTrue(service.GCalendarList().exists(UNITTEST_CALENDAR))
 
-    if not self.calendarListFd.exists(UNITTEST_CALENDAR):
-      self.calendarFd = service.GCalendar(UNITTEST_CALENDAR)
-      self.assertTrue(self.calendarListFd.exists(UNITTEST_CALENDAR))
+  @classmethod
+  def setUpClass(cls):
+    cls.reset_events()
 
-    else:
-      self.calendarFd = service.GCalendar(UNITTEST_CALENDAR)
-
-    #self.reset_events()
-
-  def reset_events(self):
+  @classmethod
+  def reset_events(cls):
     # remove the old events
-    logging.debug ("reset_events")
-    events = self.calendarFd.delete_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
-    for meal in self.meals:
-      self.calendarFd.insert_event(meal)
+    logging.debug ("RESET_EVENTS")
+    calendarFd = service.GCalendar(UNITTEST_CALENDAR)
+    events = calendarFd.delete_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
+    for meal in cls.meals:
+      calendarFd.insert_event(meal)
 
     service.GTask(UNITTEST_TASK).clear()
 
   def tearDown(self):
     pass
 
-  @unittest.skip('')
   def test_read_events_by_period(self):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertEqual(events.__len__(), self.meals.__len__())
@@ -61,7 +59,11 @@ class GMenuTest(unittest.TestCase):
     self.assertEqual(events.__len__(), self.meals.__len__()+1)
       
   def test_calendar_events_to_task(self):
+    taskfd = service.GTask(UNITTEST_TASK)
+    self.assertEqual(taskfd.get_items().__len__(), 0)
+
     self.calendarFd.push_events_to_tasks(UNITTEST_TASK, start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
+    self.assertNotEqual(taskfd.get_items().__len__(), 0)
 
   def test_pass(self):
     self.assertTrue(True)
