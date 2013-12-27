@@ -1,3 +1,5 @@
+import couch
+import json
 import unittest
 import service
 import os
@@ -10,6 +12,7 @@ from dateutil.relativedelta import relativedelta
 UNITTEST_CALENDAR = 'unittest-calendar'
 UNITTEST_TASK = 'unittest-meals-task'
 SERVER = 'http://localhost:5984'
+DBNAME = 'unittest-recipegtasktest'
 
 class GMenuTest(unittest.TestCase):
   meals = [
@@ -24,6 +27,19 @@ class GMenuTest(unittest.TestCase):
     {'start':{'date': '2013-12-09'},'end':{'date': '2013-12-09'}, 'summary': 'rib eye; mashed potatoes; green beans'}
   ]
 
+  _recipes = [
+    { 'name': 'Pasta With Boconcini',
+      'ingredients': [ 'boconcini', 'pasta', 'cherry tomatoes' ]
+    },
+    { 'name': 'stir fry',
+      'ingredients': [ 'beef', 'onions', 'red peppers' ]
+    },
+    { 'name': 'adobo',
+      'ingredients': [ 'chicken thighs', 'soy sauce', 'vinegar', 'bay leaves', 'garlic' ]
+    }
+
+  ]
+
   calendarFd = None
  
   def setUp(self):
@@ -32,12 +48,13 @@ class GMenuTest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.reset_events()
+    #cls.reset_events()
+    pass
 
   @classmethod
   def reset_events(cls):
     # remove the old events
-    logging.debug ("RESET_EVENTS")
+    logging.debug ("___RESET_EVENTS")
     calendarFd = service.GCalendar(UNITTEST_CALENDAR)
     events = calendarFd.delete_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     for meal in cls.meals:
@@ -45,9 +62,16 @@ class GMenuTest(unittest.TestCase):
 
     service.GTask(UNITTEST_TASK).clear()
 
+    recipedb = couch.Recipes(server=SERVER, dbname=DBNAME)
+    recipedb.clear()
+    for recipe in cls._recipes:
+      recipedb.add(recipe)
+
+
   def tearDown(self):
     pass
 
+  @unittest.skip('')
   def test_read_events_by_period(self):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertEqual(events.__len__(), self.meals.__len__())
@@ -58,6 +82,7 @@ class GMenuTest(unittest.TestCase):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertEqual(events.__len__(), self.meals.__len__()+1)
       
+  @unittest.skip('')
   def test_calendar_events_to_task(self):
     taskfd = service.GTask(UNITTEST_TASK)
     self.assertEqual(taskfd.get_items().__len__(), 0)
@@ -65,6 +90,20 @@ class GMenuTest(unittest.TestCase):
     self.calendarFd.push_events_to_tasks(UNITTEST_TASK, start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertNotEqual(taskfd.get_items().__len__(), 0)
 
+  #@unittest.skip('')
+  def test_shopping_list_generator(self):
+    '''
+    events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
+    self.assertEqual(events.__len__(), self.meals.__len__())
+    '''
+    service.GTask(UNITTEST_TASK).clear()
+
+    shoppingFd = service.ShoppingGenerator(UNITTEST_CALENDAR, UNITTEST_TASK, 
+        server=SERVER, dbname=DBNAME)
+
+    shoppingFd.publish(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
+
+  @unittest.skip('')
   def test_pass(self):
     self.assertTrue(True)
 

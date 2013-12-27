@@ -14,11 +14,15 @@ class RecipeTest(unittest.TestCase):
     super(RecipeTest, cls).setUpClass()
     recipedb = couch.Recipes(server=SERVER, dbname=DBNAME)
 
+    service.GTask(DBNAME).clear()
+
+  '''
   @classmethod
   def tearDownClass(cls):
     super(RecipeTest, cls).tearDownClass()
     recipedb = couch.Recipes(server=SERVER, dbname=DBNAME)
     recipedb.destroy()
+  '''
 
   def setUp(self):
     self.recipedb = couch.Recipes(server=SERVER, dbname=DBNAME)
@@ -27,7 +31,10 @@ class RecipeTest(unittest.TestCase):
       "ingredients": [
         "boconcini",
         "pasta",
-        "cherry tomatoes"
+        "cherry tomatoes",
+        "garlic",
+        "olive oil",
+        "salt"
       ]
     }
     self.recipedb.add(self.boconcini)
@@ -76,16 +83,15 @@ class RecipeTest(unittest.TestCase):
       doc = self.recipedb.get_doc(self.boconcini['name'])
       self.assertEqual(doc['ingredients'].__len__(), self.boconcini['ingredients'].__len__())
 
-  @unittest.skip('')
+  #@unittest.skip('')
   def test_export_to_gtask(self):
-    tasklist = service.GTaskList().get_list_by_name(DBNAME)
-    if tasklist:
-      print "<<<<\n%s\n>>>>" % json.dumps(tasklist, indent=2)
-    taskfd = service.GTask(id = tasklist['id'])
+    taskfd = service.GTask(DBNAME)
+    taskfd.clear()
 
-    task_len =  taskfd.__len__()
     self.recipedb.export_to_gtask(self.boconcini['name'], DBNAME)
-    self.assertEquals(task_len + self.boconcini['ingredients'].__len__(),  taskfd.__len__())
+    tasks = taskfd.get_items()
+
+    self.assertEquals(self.boconcini['ingredients'].__len__()+1,  taskfd.__len__())
 
   @unittest.skip('none')
   def test_list(self):

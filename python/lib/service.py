@@ -48,13 +48,20 @@ FLOW = OAuth2WebServerFlow(
     scope= 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
     user_agent="crustifier/V0.1")
 
+class Singleton(object):
+  _instances = {}
+  def __new__(class_, *args, **kwargs):
+    if class_ not in class_._instances:
+        class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
+    return class_._instances[class_]
+
 
 class GoogleService(object):
 
-  def __init__(self, gservice, label = 'title'):
-    logging.info ('Initializing: %s' % json.dumps(gservice, indent=2))
+  _gservice = None
+  def __init__(self, google_dict, label = 'title'):
     self.label = label
-    task_storage = Storage(gservice['storage_file'])
+    task_storage = Storage(google_dict['storage_file'])
     credentials = task_storage.get()
 
     if credentials is None or credentials.invalid == True:
@@ -63,12 +70,13 @@ class GoogleService(object):
     http = httplib2.Http()
     http = credentials.authorize(http)
 
-    version = gservice['version']
-    self.gservice = build(serviceName=gservice['name'], 
+    version = google_dict['version']
+    self._gservice = build(serviceName=google_dict['name'], 
         version=version, http=http, developerKey='')
 
-    gservice['store'] = self.gservice
-    logging.debug ("initialized %s" % gservice['name'])
+    google_dict['store'] = self._gservice
+    logging.debug ("initialized %s" % google_dict['name'])
+
 
   def exists(self, item_name):
     if self.get_item_by_name(item_name):
@@ -95,21 +103,25 @@ class GoogleService(object):
   def __len__(self):
     return self.get_items().__len__()
     
-class GCalendarWrapper(GoogleService):
-  def __init__(self):
-    cal_dict = {
-      'name': 'calendar',
-      'version': 'v3',
-      'storage_file': 'calendar.dat',
-      'store': None
-    }
-    GoogleService.__init__(self, cal_dict, label='summary')
+class GCalendarWrapper(GoogleService, Singleton):
+  cal_dict = {
+    'name': 'calendar',
+    'version': 'v3',
+    'storage_file': 'calendar.dat',
+    'store': None
+  }
+  #_gservice = None
+  def __init__(self, title=None):
+    if not self._gservice:
+      self.cal_dict['title'] = title
+      GoogleService.__init__(self, self.cal_dict, label='summary')
+      self.cal_dict['store'] = self._gservice 
 
 class GCalendar(GCalendarWrapper):
   def __init__(self, name):
-    GCalendarWrapper.__init__(self)
-    self._function = self.gservice.calendars()
-    self._events = self.gservice.events()
+    GCalendarWrapper.__init__(self, name)
+    self._function = self._gservice.calendars()
+    self._events = self._gservice.events()
     self.calendarListFd = GCalendarList()
 
     # initialize the calendar
@@ -146,7 +158,7 @@ class GCalendar(GCalendarWrapper):
 class GEvents(GCalendarWrapper):
   def __init__(self, calendarId):
     GCalendarWrapper.__init__(self)
-    self._function = self.gservice.events()
+    self._function = self._gservice.events()
     self.id = calendarId
 
   def insert(self, event):
@@ -156,7 +168,7 @@ class GEvents(GCalendarWrapper):
 class GCalendarList(GCalendarWrapper):
   def __init__(self):
     GCalendarWrapper.__init__(self)
-    self._function = self.gservice.calendarList()
+    self._function = self._gservice.calendarList()
 
   def delete(self, name):
     _item = self.get_item_by_name(name)
@@ -203,18 +215,23 @@ class GCalendarList(GCalendarWrapper):
     fd.close()
 
 class GTaskWrapper(GoogleService):
-  def __init__(self):
-    task_dict = {
-      'name': 'tasks',
-      'version': 'v1',
-      'storage_file': 'tasks.dat',
-      'store': None
-    }
-    GoogleService.__init__(self, task_dict)
+  task_dict = {
+    'name': 'tasks',
+    'version': 'v1',
+    'storage_file': 'tasks.dat',
+    'store': None
+  }
+  #_gservice = None
+  def __init__(self, title=None):
+    if not self._gservice:
+      logging.debug('initializing tasks service')
+      self.task_dict['title'] = title
+      GoogleService.__init__(self, self.task_dict)
+      self.task_dict['store'] = self._gservice 
 
 class GTask(GTaskWrapper):
   def __init__(self, tasklist_name):
-    GTaskWrapper.__init__(self)
+    GTaskWrapper.__init__(self, tasklist_name)
 
     tasklistFd = GTaskList()
     self.tasklist = tasklistFd.get_item_by_name(tasklist_name)
@@ -222,13 +239,13 @@ class GTask(GTaskWrapper):
       self.tasklist = tasklistFd.insert({'title': tasklist_name})
 
     self.id = self.tasklist['id']
-    self._function = self.gservice.tasks()
+    self._function = self._gservice.tasks()
 
-  def insert(self, task):
+  def insert(self, task, parent=None):
     """ 
     override 
     """
-    self._function.insert(tasklist=self.id, body=task).execute()
+    return self._function.insert(tasklist=self.id, body=task, parent=parent).execute()
 
   def get_items(self):
     """ 
@@ -255,13 +272,13 @@ class GTask(GTaskWrapper):
 
 class GTaskList(GTaskWrapper):
   def __init__(self):
-    GTaskWrapper.__init__(self)
-    self._function = self.gservice.tasklists()
+    GTaskWrapper.__init__(self, title=None)
+    self._function = self._gservice.tasklists()
 
   def insert(self, tasklist):
     _list = self.get_item_by_name(tasklist[self.label])
     if not _list:
-      _list = self.gservice.tasklists().insert(body=tasklist).execute()
+      _list = self._gservice.tasklists().insert(body=tasklist).execute()
     return _list
 
   def delete(self, name):
@@ -270,8 +287,27 @@ class GTaskList(GTaskWrapper):
       return self._function.delete(tasklist=item['id']).execute()
 
 
+import couch
 class ShoppingGenerator(object):
-  def __init__(self, calendarName, taskName):
+  def __init__(self, calendarName, taskName, server, dbname):
+    logging.info(" __init__: 1")
+    self.calendarName = calendarName
+    self.taskName = taskName
+
+    logging.info(" __init__: calendar")
     self.calFd = GCalendar(calendarName)
+    logging.info(" __init__: task")
     self.taskFd = GTask(taskName)
+    self.taskFd.clear()
+
+    logging.info(" __init__: recipedb: %s" % dbname)
+    self.recipedb = couch.Recipes(server=server, dbname=dbname)
+
+  def publish(self, start_date, end_date):
+    events = self.calFd.get_events(start_date=start_date, end_date=end_date)
+
+    # push the meals into the tasklist
+    for event in events:
+      self.recipedb.export_to_gtask(event['summary'], self.taskName)
+
 

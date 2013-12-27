@@ -130,17 +130,28 @@ def mangled_id(string):
   return string.replace(" ", "_").lower()
 
 class Recipes(Couch):
+  taskfd = None
   def __init__(self, server='http://localhost:5984', dbname='recipes'):
     Couch.__init__(self, server, dbname)
     self.recipes = {}
 
   def export_to_gtask(self, name, tl_name):
-    recipe = self.get_doc(name)
-    if recipe:
-      tasklist = service.GTaskList().get_list_by_name(tl_name)
-      taskfd = service.GTask(id = tasklist['id'])
-      for ingredient in recipe['ingredients']:
-        taskfd.insert({'title': ingredient})
+    if not self.taskfd:
+      self.taskfd = service.GTask(tl_name)
+    self.taskfd.clear()
+    for recipe in name.split(';'):
+      recipe = recipe.strip()
+      meal = self.get_doc(recipe)
+
+      if meal:
+        mealfd = self.taskfd.insert({'title': 'recipe: %s' % recipe})
+        for ingredient in meal['ingredients']:
+          _ingredient = {
+            'title': 'ingredient: %s' % ingredient
+          }
+          self.taskfd.insert(_ingredient, parent=mealfd['id'])
+      else:
+        self.taskfd.insert({'title': 'recipe: %s' % recipe})
 
   def add_with_ingredients (self, name, ingredients = []):
     self.add({
@@ -212,6 +223,10 @@ class Recipes(Couch):
   def parse(self, string):
     for recipe in string.split(','):
       self.add(recipe.strip())
+
+  def clear(self):
+    for recipe in self.get_docs():
+      self.delete(recipe)
 
 
 class Menu(Couch):
