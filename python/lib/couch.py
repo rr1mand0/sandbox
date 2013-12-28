@@ -153,9 +153,11 @@ class Recipes(Couch):
         self.taskfd.insert({'title': 'recipe: %s' % recipe})
 
   def add_with_ingredients (self, name, ingredients = []):
+    if ingredients.__len__():
+      ingredients = [ing.strip() for ing in ingredients.split(',')] 
     self.add({
       'name': name,
-      'ingredients': [ing.strip() for ing in ingredients.split(',')]
+      'ingredients': ingredients
     })
     
   def add(self, recipe):
@@ -185,7 +187,7 @@ class Recipes(Couch):
 
   def get_doc(self, name):
     for id in self.db:
-      if name == self.db[id]['name']:
+      if self.db[id].has_key('name') and name == self.db[id]['name']:
         logging.debug("get_doc: %s" % (json.dumps(self.db[id],indent=2)))
         return self.db[id]
     return {}

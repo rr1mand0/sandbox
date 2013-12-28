@@ -55,6 +55,15 @@ class RecipeTest(unittest.TestCase):
     self.assertEquals(self.recipedb.exists('adobo'), False)
     self.assertEquals(self.recipedb.__len__(), recipe_count)
 
+  def test_create_by_args_no_ingredients(self):
+    recipe_count = self.recipedb.__len__()
+    self.recipedb.add_with_ingredients ('adobo')
+    self.assertEquals(self.recipedb.exists('adobo'), True)
+    self.assertEquals(self.recipedb.__len__(), recipe_count+1)
+
+    self.recipedb.delete('adobo')
+    self.assertEquals(self.recipedb.exists('adobo'), False)
+    self.assertEquals(self.recipedb.__len__(), recipe_count)
 
   def test_create(self):
     self.assertEquals(self.recipedb.exists(self.boconcini['name']), True)
