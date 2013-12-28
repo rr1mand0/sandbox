@@ -290,24 +290,20 @@ class GTaskList(GTaskWrapper):
 import couch
 class ShoppingGenerator(object):
   def __init__(self, calendarName, taskName, server, dbname):
-    logging.info(" __init__: 1")
     self.calendarName = calendarName
     self.taskName = taskName
 
-    logging.info(" __init__: calendar")
     self.calFd = GCalendar(calendarName)
-    logging.info(" __init__: task")
     self.taskFd = GTask(taskName)
-    self.taskFd.clear()
 
-    logging.info(" __init__: recipedb: %s" % dbname)
     self.recipedb = couch.Recipes(server=server, dbname=dbname)
 
   def publish(self, start_date, end_date):
     events = self.calFd.get_events(start_date=start_date, end_date=end_date)
-
     # push the meals into the tasklist
     for event in events:
+      print ("Publishing: %s: %s" % (event['start']['date'], event['summary']))
+      logging.debug ("publishing: %s" % event)
       self.recipedb.export_to_gtask(event['summary'], self.taskName)
 
 

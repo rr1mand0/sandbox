@@ -138,7 +138,6 @@ class Recipes(Couch):
   def export_to_gtask(self, name, tl_name):
     if not self.taskfd:
       self.taskfd = service.GTask(tl_name)
-    self.taskfd.clear()
     for recipe in name.split(';'):
       recipe = recipe.strip()
       meal = self.get_doc(recipe)

@@ -29,13 +29,15 @@ if __name__ == "__main__":
   logging.basicConfig(filename='%s/gcald.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
   SHOPPINGFD = service.ShoppingGenerator(CALENDAR, TASK, server=SERVER, dbname=DBNAME)
   one_week = datetime.timedelta(days=7)
-  for loop in range(1,1):
+  #for loop in range(1,2):
+  while True:
+    service.GTask(TASK).clear()
     start_date = datetime.datetime.now()
     end_date   = start_date + one_week
+
 
     logging.info("Publishing %s-%s" % (start_date.isoformat('T'), end_date.isoformat('T')))
     SHOPPINGFD.publish(start_date='%sZ'%start_date.isoformat('T'), 
         end_date='%sZ'%end_date.isoformat('T'))
-    #SHOPPINGFD.publish(start_date='2013-12-27T00:00:00Z', end_date='2013-12-31T23:59:00Z')
-    time.sleep(10)
+    time.sleep(60)
 
