@@ -16,7 +16,8 @@ def listfn(args):
 
 def addfn(args):
   _recipe = couch.Recipes(server = SERVER, dbname = DBNAME)
-  _recipe.add_with_ingredients(args.add_recipe, ingredients = args.ingredients)
+  _recipe.add_with_ingredients(args.add_recipe, ingredients = args.ingredients,
+      url = args.url)
 
 def deletefn(args):
   _recipe = couch.Recipes(server = SERVER, dbname = DBNAME)
@@ -38,6 +39,8 @@ if __name__ == '__main__':
       type=str)
     parser_add.add_argument('-i', '--ingredients',
       help='ingredients for recipe')
+    parser_add.add_argument('-u', '--url',
+      help='link to recipe')
     parser_add.set_defaults(func=addfn)
 
     parser_delete = subparsers.add_parser('delete',

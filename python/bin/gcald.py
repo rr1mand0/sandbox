@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import argparse
 import datetime
 import daemon
 import time
@@ -44,20 +45,35 @@ def process_flags(argv):
   #logging.getLogger().setLevel(getattr(logging, gflags.FLAGS.logging_level))
 
 
+def single(args):
+  service.GTask(TASK).clear()
+  start_date = datetime.datetime.now()
+  end_date   = start_date + one_week
+
+  logging.info("Publishing %s-%s" % (start_date.isoformat('T'), end_date.isoformat('T')))
+  SHOPPINGFD.publish(start_date='%sZ'%start_date.isoformat('T'), 
+      end_date='%sZ'%end_date.isoformat('T'))
+
+def daemon(args):
+  while True:
+    single(args)
+
+
 if __name__ == "__main__":
   process_flags(sys.argv)
   logging.basicConfig(filename='%s/gcald.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
   SHOPPINGFD = service.ShoppingGenerator(CALENDAR, TASK, server=SERVER, dbname=DBNAME)
   one_week = datetime.timedelta(days=7)
-  #for loop in range(1,2):
-  while True:
-    service.GTask(TASK).clear()
-    start_date = datetime.datetime.now()
-    end_date   = start_date + one_week
 
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers(help='sub-command help')
+  parser_daemon = subparsers.add_parser('daemon', help='run as daemon')
+  parser_daemon.set_defaults(func=daemon)
 
-    logging.info("Publishing %s-%s" % (start_date.isoformat('T'), end_date.isoformat('T')))
-    SHOPPINGFD.publish(start_date='%sZ'%start_date.isoformat('T'), 
-        end_date='%sZ'%end_date.isoformat('T'))
-    time.sleep(60)
+  parser_single = subparsers.add_parser('single', help='run as daemon')
+  parser_single.set_defaults(func=single)
+
+  args = parser.parse_args()
+
+  args.func(args)
 

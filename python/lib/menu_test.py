@@ -71,10 +71,10 @@ class GMenuTest(unittest.TestCase):
   def tearDown(self):
     pass
 
-  @unittest.skip('')
+  #@unittest.skip('')
   def test_read_events_by_period(self):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
-    self.assertEqual(events.__len__(), self.meals.__len__())
+    self.assertEqual(events.__len__(), self.meals.__len__()+1)
 
     new_meal = {'start':{'date': '2013-12-10'},'end':{'date': '2013-12-10'}, 'summary': 'ribs; lemon potatoes; greek salad'}
     self.calendarFd.insert_event(new_meal)
@@ -82,9 +82,10 @@ class GMenuTest(unittest.TestCase):
     events = self.calendarFd.get_events(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
     self.assertEqual(events.__len__(), self.meals.__len__()+1)
       
-  @unittest.skip('')
+  #@unittest.skip('')
   def test_calendar_events_to_task(self):
     taskfd = service.GTask(UNITTEST_TASK)
+    taskfd.clear()
     self.assertEqual(taskfd.get_items().__len__(), 0)
 
     self.calendarFd.push_events_to_tasks(UNITTEST_TASK, start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
@@ -103,7 +104,7 @@ class GMenuTest(unittest.TestCase):
 
     shoppingFd.publish(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
 
-  @unittest.skip('')
+  #@unittest.skip('')
   def test_pass(self):
     self.assertTrue(True)
 

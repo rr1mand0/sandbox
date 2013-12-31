@@ -146,18 +146,19 @@ class Recipes(Couch):
         mealfd = self.taskfd.insert({'title': 'recipe: %s' % recipe})
         for ingredient in meal['ingredients']:
           _ingredient = {
-            'title': 'ingredient: %s' % ingredient
+            'title': '%s' % ingredient
           }
           self.taskfd.insert(_ingredient, parent=mealfd['id'])
       else:
         self.taskfd.insert({'title': 'recipe: %s' % recipe})
 
-  def add_with_ingredients (self, name, ingredients = []):
+  def add_with_ingredients (self, name, ingredients = [], url = None):
     if ingredients.__len__():
       ingredients = [ing.strip() for ing in ingredients.split(',')] 
     self.add({
       'name': name,
-      'ingredients': ingredients
+      'ingredients': ingredients,
+      'url': url
     })
     
   def add(self, recipe):
