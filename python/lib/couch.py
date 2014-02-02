@@ -138,19 +138,21 @@ class Recipes(Couch):
   def export_to_gtask(self, name, tl_name):
     if not self.taskfd:
       self.taskfd = service.GTask(tl_name)
+
     for recipe in name.split(';'):
       recipe = recipe.strip()
-      meal = self.get_doc(recipe)
+      if not re.match(r'\[.*\]', recipe):
+        meal = self.get_doc(recipe)
 
-      if meal:
-        mealfd = self.taskfd.insert({'title': 'recipe: %s' % recipe})
-        for ingredient in meal['ingredients']:
-          _ingredient = {
-            'title': '%s' % ingredient
-          }
-          self.taskfd.insert(_ingredient, parent=mealfd['id'])
-      else:
-        self.taskfd.insert({'title': 'recipe: %s' % recipe})
+        if meal:
+          mealfd = self.taskfd.insert({'title': 'recipe: %s' % recipe})
+          for ingredient in meal['ingredients']:
+            _ingredient = {
+              'title': '%s' % ingredient
+            }
+            self.taskfd.insert(_ingredient, parent=mealfd['id'])
+        else:
+          self.taskfd.insert({'title': 'recipe: %s' % recipe})
 
   def add_with_ingredients (self, name, ingredients = [], url = None):
     if ingredients.__len__():

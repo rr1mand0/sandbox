@@ -302,8 +302,9 @@ class ShoppingGenerator(object):
     events = self.calFd.get_events(start_date=start_date, end_date=end_date)
     # push the meals into the tasklist
     for event in events:
-      print ("Publishing: %s: %s" % (event['start']['date'], event['summary']))
-      logging.debug ("publishing: %s" % event)
-      self.recipedb.export_to_gtask(event['summary'], self.taskName)
+      try:
+        self.recipedb.export_to_gtask(event['summary'], self.taskName)
+      except:
+        print ("skipping: %s" % event)
 
 

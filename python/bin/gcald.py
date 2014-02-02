@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import argparse
 import datetime
-import daemon
 import time
 import os
 import logging
@@ -10,7 +9,7 @@ import sys, time
 import gflags
 
 TASK     = 'GTask'
-CALENDAR = 'GMenu'
+CALENDAR = 'Menu'
 SERVER   = 'http://localhost:5984'
 DBNAME   = 'recipes'
 
@@ -67,8 +66,6 @@ if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers(help='sub-command help')
-  parser_daemon = subparsers.add_parser('daemon', help='run as daemon')
-  parser_daemon.set_defaults(func=daemon)
 
   parser_single = subparsers.add_parser('single', help='run as daemon')
   parser_single.set_defaults(func=single)

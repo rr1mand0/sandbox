@@ -104,9 +104,30 @@ class GMenuTest(unittest.TestCase):
 
     shoppingFd.publish(start_date='2013-12-01T00:00:00Z', end_date='2013-12-31T23:59:00Z')
 
-  #@unittest.skip('')
-  def test_pass(self):
-    self.assertTrue(True)
+  def test_duplicate_recipe(self):
+    ''' 
+    only list the recipe once.
+    Add when the recipe will be needed in the notes section
+    '''
+    self.assertTrue(False)
+
+  def test_recipe_in_ingredient_note(self):
+    ''' 
+    add the recipe where the ingredient is needed in the notes section 
+    '''
+    self.assertTrue(False)
+
+  def test_sort_by_section(self):
+    ''' 
+    add a function to sort the task list by section
+    '''
+    self.assertTrue(False)
+
+  def test_sort_by_section(self):
+    ''' 
+    add a function to sort the task list by section
+    '''
+    self.assertTrue(False)
 
 if __name__ == '__main__':
   logging.basicConfig(filename='%s/test.log' % os.environ['LOG_DIR'], level=logging.DEBUG)
