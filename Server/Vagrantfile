@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.provision "shell", inline: "echo Hello"
+	config.vm.network "public_network"
+	config.vm.box = "precise64"
+
+  config.vm.define "couch" do |cfg|
+		cfg.vm.hostname = "couch"
+    cfg.vm.provision "chef_client" do |chef|
+			chef.chef_server_url = "https://192.168.1.54/"
+      chef.validation_key_path = "/vagrant/validation.pem"
+    end
+  end
+
+  config.vm.define "chefsrv" do |cfg|
+		cfg.vm.hostname = "chefsrv"
+  end
+
+  config.vm.define "logsrv" do |cfg|
+		cfg.vm.hostname = "logsrv"
+  end
+end
