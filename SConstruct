@@ -20,3 +20,5 @@ for f in Glob('python/*/*_test.py'):
 
 env.Alias('pytest', pytest_file_list)
 Default(pytest_file_list)
+
+# vim: ft=python

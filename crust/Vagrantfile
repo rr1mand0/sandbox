@@ -6,20 +6,19 @@ LOCAL_SRC_DIR = '~/private/sandbox/crust'
 ethdev=ENV['ETHDEV']
 macaddress=ENV['CRUST_MAC']
 
-Vagrant::Config.run do |cfg|
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |cfg|
   cfg.vm.box = "precise64"
-  #cfg.vm.boot_mode = :gui
   cfg.vm.host_name = :crust.to_s
+  cfg.vm.network "public_network"
 
-  cfg.vm.customize ["modifyvm", :id, "--macaddress2", macaddress]
-  cfg.vm.customize ["modifyvm", :id, "--nic2", "bridged"]
-  cfg.vm.customize ["modifyvm", :id, "--bridgeadapter2", ethdev]
+  cfg.vm.synced_folder "..", "/vagrant_data"
 
-  cfg.vm.customize ["modifyvm", :id, "--nic1", "nat"]
-  cfg.ssh.guest_port = 22
-  cfg.ssh.username = "vagrant"
-
-  cfg.vm.share_folder("v-root", REMOTE_SRC_DIR, LOCAL_SRC_DIR, :nfs => false)
-  cfg.vm.provision :shell, :inline => "#{REMOTE_SRC_DIR}/install_chef.sh"
-  cfg.vm.provision :shell, :inline => "chef-solo -c #{REMOTE_SRC_DIR}/chef/config/solo-vagrant.rb -j #{REMOTE_SRC_DIR}/chef/nodes/crust-template.json"
+  #cfg.vm.provision "chef_solo" do |chef|
+  #  chef.cookbooks_path = "../chef/cookbooks"
+  #  chef.roles_path = "../chef/roles"
+  #  chef.data_bags_path = "../chef/data_bags"
+  #  chef.add_recipe "elkstack::elasticsearch"
+  #end
 end
