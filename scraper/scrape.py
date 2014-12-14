@@ -1,8 +1,6 @@
 from lxml import html
 import re
 import json
-import sys
-import argparse
 import requests
 from urlparse import urlparse
 import es
@@ -68,54 +66,38 @@ class ChowComScraper(RecipeScraper):
             }
 
 
-def delete(args):
-  esfd = es.EsRecipe()
-  esfd.delete(url=args.url)
 
-def scrape(args):
-  parsed_uri = urlparse( args.url )
-  domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-
-  page = requests.get(args.url)
-  recipe_tree = html.fromstring(page.text)
-
-  if re.search('allrecipes.com', domain):
-    recipe = AllrecipesScraper().extract(args.url, recipe_tree)
-  elif re.search('about.com', domain):
-    recipe = AboutScraper().extract(args.url, recipe_tree)
-  elif re.search('foodnetwork.ca', domain):
-    recipe = FoodnetworkCaScraper().extract(args.url, recipe_tree)
-  elif re.search('chow.com', domain):
-    recipe = ChowComScraper().extract(args.url, recipe_tree)
-
-  try:
-    print json.dumps(recipe, indent=2)
+class Scraper(object):
+  def __init__(self):
     esfd = es.EsRecipe()
-    esfd.save(recipe)
-  except UnboundLocalError:
-    print "Could not handle recipe from %s" % args.url
 
+  def scrape(self, url):
+    parsed_uri = urlparse( args.url )
+    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
+    page = requests.get(args.url)
+    recipe_tree = html.fromstring(page.text)
 
-def main():
-  parser = argparse.ArgumentParser(description="recipe scraper toolset")
+    if re.search('allrecipes.com', domain):
+      recipe = AllrecipesScraper().extract(args.url, recipe_tree)
+    elif re.search('about.com', domain):
+      recipe = AboutScraper().extract(args.url, recipe_tree)
+    elif re.search('foodnetwork.ca', domain):
+      recipe = FoodnetworkCaScraper().extract(args.url, recipe_tree)
+    elif re.search('chow.com', domain):
+      recipe = ChowComScraper().extract(args.url, recipe_tree)
 
-  parser.add_argument('-v', '--verbose', action='store_true', default=False,
-      help='verbose output' )
-  subparsers = parser.add_subparsers(help='sub-command help')
+    try:
+      print json.dumps(recipe, indent=2)
+      esfd = es.EsRecipe()
+      esfd.save(recipe)
+    except UnboundLocalError:
+      print "Could not handle recipe from %s" % args.url
 
-  parser_scrape = subparsers.add_parser('scrape', 
-      help='search for accounts matching string.  To print all accounts you can use "all"')
-  parser_scrape.add_argument ('url', help='url to scrape')
-  parser_scrape.set_defaults(func=scrape)
+  def load(self, url):
+    pass
 
-  parser_delete = subparsers.add_parser('delete', 
-      help='search for accounts matching string.  To print all accounts you can use "all"')
-  parser_delete.add_argument ('url', help='url to delete')
-  parser_delete.set_defaults(func=delete)
-  
-  args = parser.parse_args()
-  args.func(args)
+  def delete(self, url):
+    esfd = es.EsRecipe()
+    esfd.delete(url=url)
 
-if __name__ == '__main__':
-  sys.exit(main())
