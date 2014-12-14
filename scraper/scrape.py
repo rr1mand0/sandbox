@@ -71,28 +71,29 @@ class Scraper(object):
   def __init__(self):
     esfd = es.EsRecipe()
 
-  def scrape(self, url):
-    parsed_uri = urlparse( args.url )
+  def scrape(self, url, keywords):
+    parsed_uri = urlparse( url )
     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
-    page = requests.get(args.url)
+    page = requests.get(url)
     recipe_tree = html.fromstring(page.text)
 
     if re.search('allrecipes.com', domain):
-      recipe = AllrecipesScraper().extract(args.url, recipe_tree)
+      recipe = AllrecipesScraper().extract(url, recipe_tree)
     elif re.search('about.com', domain):
-      recipe = AboutScraper().extract(args.url, recipe_tree)
+      recipe = AboutScraper().extract(url, recipe_tree)
     elif re.search('foodnetwork.ca', domain):
-      recipe = FoodnetworkCaScraper().extract(args.url, recipe_tree)
+      recipe = FoodnetworkCaScraper().extract(url, recipe_tree)
     elif re.search('chow.com', domain):
-      recipe = ChowComScraper().extract(args.url, recipe_tree)
+      recipe = ChowComScraper().extract(url, recipe_tree)
 
     try:
+      recipe['keywords'] = keywords
       print json.dumps(recipe, indent=2)
       esfd = es.EsRecipe()
       esfd.save(recipe)
     except UnboundLocalError:
-      print "Could not handle recipe from %s" % args.url
+      print "Could not handle recipe from %s" % url
 
   def load(self, url):
     pass

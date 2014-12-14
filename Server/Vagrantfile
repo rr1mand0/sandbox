@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.provision "shell", inline: "echo Hello"
+  #config.vm.provision "shell", inline: "echo Hello"
 	config.vm.network "public_network"
 	config.vm.box = "precise64"
 
@@ -20,5 +20,21 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "logsrv" do |cfg|
 		cfg.vm.hostname = "logsrv"
+  end
+  config.vm.define "plex" do |cfg|
+    cfg.vm.provider "virtualbox" do |v|
+			v.memory = 1024
+		end
+		cfg.vm.hostname = "plex"
+    config.vm.provision "shell", inline: "sudo /vagrant/install_plex.sh"
+    config.vm.synced_folder "/mnt/d1/Music", "/mnt/Music"
+    config.vm.synced_folder "/mnt/d1/Wallpapers", "/mnt/Wallpapers"
+    config.vm.synced_folder "/mnt/d1/FamilyVideos", "/mnt/FamilyVideos"
+    config.vm.synced_folder "/mnt/d1/ITunes", "/mnt/ITunes"
+
+    #config.vm.provision "shell", inline: "sudo dpkg -i /tmp/plexmediaserver_0.9.9.5.411-da1d892_i386.deb"
+    #config.vm.provision "shell", inline: "sudo apt-get update"
+    #config.vm.provision "shell", inline: "sudo apt-get -f install -f --yes avahi-daemon avahi-utils"
+    #config.vm.provision "shell", inline: "sudo apt-get -f install --yes"
   end
 end

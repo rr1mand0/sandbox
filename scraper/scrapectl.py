@@ -12,6 +12,7 @@ def main():
   parser_scrape = subparsers.add_parser('scrape', 
       help='search for accounts matching string.  To print all accounts you can use "all"')
   parser_scrape.add_argument ('url', help='url to scrape')
+  parser_scrape.add_argument ('--keywords', nargs="+", help='url to scrape', default=[])
   parser_scrape.set_defaults(func=scrape.Scraper().scrape)
 
   parser_delete = subparsers.add_parser('delete', 
@@ -20,8 +21,7 @@ def main():
   parser_delete.set_defaults(func=scrape.Scraper().delete)
   
   args = parser.parse_args()
-  import ipdb; ipdb.set_trace() # BREAKPOINT
-  args.func(url=args['url'])
+  args.func(url=args.url, keywords=args.keywords)
 
 if __name__ == '__main__':
   sys.exit(main())
