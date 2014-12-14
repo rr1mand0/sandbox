@@ -1,10 +1,11 @@
 from lxml import html
+import re
 import json
 import sys
 import argparse
 import requests
 from urlparse import urlparse
-
+import es
 
 
 class RecipeScraper(object):
@@ -67,6 +68,10 @@ class ChowComScraper(RecipeScraper):
             }
 
 
+def delete(args):
+  esfd = es.EsRecipe()
+  esfd.delete(url=args.url)
+
 def scrape(args):
   parsed_uri = urlparse( args.url )
   domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
@@ -74,17 +79,19 @@ def scrape(args):
   page = requests.get(args.url)
   recipe_tree = html.fromstring(page.text)
 
-  if domain == 'http://allrecipes.com/':
+  if re.search('allrecipes.com', domain):
     recipe = AllrecipesScraper().extract(args.url, recipe_tree)
-  elif domain == 'http://bbq.about.com/':
+  elif re.search('about.com', domain):
     recipe = AboutScraper().extract(args.url, recipe_tree)
-  elif domain == 'http://www.foodnetwork.ca/':
+  elif re.search('foodnetwork.ca', domain):
     recipe = FoodnetworkCaScraper().extract(args.url, recipe_tree)
-  elif domain == 'http://www.chow.com/':
+  elif re.search('chow.com', domain):
     recipe = ChowComScraper().extract(args.url, recipe_tree)
 
   try:
     print json.dumps(recipe, indent=2)
+    esfd = es.EsRecipe()
+    esfd.save(recipe)
   except UnboundLocalError:
     print "Could not handle recipe from %s" % args.url
 
@@ -101,6 +108,11 @@ def main():
       help='search for accounts matching string.  To print all accounts you can use "all"')
   parser_scrape.add_argument ('url', help='url to scrape')
   parser_scrape.set_defaults(func=scrape)
+
+  parser_delete = subparsers.add_parser('delete', 
+      help='search for accounts matching string.  To print all accounts you can use "all"')
+  parser_delete.add_argument ('url', help='url to delete')
+  parser_delete.set_defaults(func=delete)
   
   args = parser.parse_args()
   args.func(args)
