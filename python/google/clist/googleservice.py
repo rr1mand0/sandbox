@@ -60,39 +60,47 @@ FLOW = OAuth2WebServerFlow(
     user_agent="crustifier/V0.1")
 
 
-class GoogleService:
-  service_list = {"items":[
-    {
+class GoogleService(object):
+  def __init__(self, config):
+    task_storage = Storage(config['storage_file'])
+    credentials = task_storage.get()
+
+    if credentials is None or credentials.invalid == True:
+      credentials = run(FLOW, task_storage)
+
+    http = httplib2.Http()
+    http = credentials.authorize(http)
+
+    self._store = build(serviceName=config['name'], 
+                            version=config['version'],
+                            http=http, developerKey='')
+
+  @property
+  def service(self):
+    return self._store
+
+class TaskService(GoogleService):
+  def __init__(self):
+    config = {
       "name": "tasks",
       "version": "v1",
       "storage_file": "tasks.dat",
       "store": None
-    },
-    {
+    }
+    super(TaskService, self).__init__(config)
+
+  def get_tasklist_by_name(self, name):
+    import ipdb; ipdb.set_trace() # BREAKPOINT
+    self.service.tasklists()
+
+
+class CalendarService(GoogleService):
+  def __init__(self):
+    config = {
       "name": "calendar",
       "version": "v3",
       "storage_file": "calendar.dat",
       "store": None
     }
-  ]
-  }
-  def __init__(self):
-    self.task_service = None
-    self.calendar_service = None
-    for service in self.service_list['items']:
-      task_storage = Storage(service['storage_file'])
-      credentials = task_storage.get()
+    super(CalendarService, self).__init__(config)
 
-      if credentials is None or credentials.invalid == True:
-        credentials = run(FLOW, task_storage)
-
-      http = httplib2.Http()
-      http = credentials.authorize(http)
-
-      service['store']     = build(serviceName=service['name'], version=service['version'], http=http, developerKey='')
-
-  def get_task_service(self):
-    return self.service_list['items'][0]['store']
-      
-  def get_calendar_service(self):
-    return self.service_list['items'][1]['store']

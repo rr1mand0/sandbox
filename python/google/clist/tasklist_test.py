@@ -1,6 +1,6 @@
-from googleservice import GoogleService
+import googleservice as gs
 from tasklist import TaskList
-from calendar  import CalendarList
+#from calendar  import CalendarList
 from tasks import Task
 from oauth2client.client import AccessTokenRefreshError
 import sys
@@ -19,16 +19,17 @@ gflags.DEFINE_enum('logging_level', 'ERROR',
 
 class TaskListTest(unittest.TestCase):
   def setUp(self):
-    self.calendar_service = GoogleService().get_calendar_service()
-    self.task_service     = GoogleService().get_task_service()
+    self.calendar_service = gs.CalendarService().service
+    self.task_service     = gs.TaskService().service
     self.tl               = self.task_service.tasklists()
     self.task             = self.task_service.tasks()
     #print json.dumps(self.tl.list().execute(), indent=2)
 
   def testcreate(self):
-    tasklist = TaskList("rays-test=01")
-    tasklist.create()
-    self.failIf(not tasklist.exists())
+    tasklist = TaskList()
+    name = "rays-test-01"
+    tasklist.create(name)
+    self.failIf(not tasklist.exists(name))
 
   #@unittest.skip("demonstrating skipping")
   def testcreate_and_delete(self):
