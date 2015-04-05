@@ -98,6 +98,17 @@ class Scraper(object):
   def load(self, url):
     pass
 
+  def list(self, **kwargs):
+    esfd = es.EsRecipe()
+    records = esfd.get_records()
+    recipes = []
+    for record in records:
+      recipes.append(record['_source']['name'])
+    print recipes
+    return recipes
+
+    
+
   def delete(self, url):
     esfd = es.EsRecipe()
     esfd.delete(url=url)

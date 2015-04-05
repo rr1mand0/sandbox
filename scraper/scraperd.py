@@ -1,13 +1,14 @@
 import web
 import json
 from elasticsearch import Elasticsearch
+import scrape
 
 # /products/diaper {}
 _URLS = (
     "/products", "ProductsHandler",
     "/products/([^/]+)", "ProductsHandler",
-    "/scraper/scrape/(.+)", "Scraper",
-    "/", "RootHandler"
+    "/scrape/(.+)", "URLHandler",
+    "/", "Scraper"
     )
 
 
@@ -31,9 +32,22 @@ class ProductsHandler(object):
     jstring = json.loads(args)
     Products().publish(jstring)
 
+class URLHandler(object):
+  def GET(self, url):
+    print url
+    scrape.Scaper().scrape(url=url)
+    return "Scraped %s" % url
+
 class Scraper(object):
-  def GET(self, name):
-    return name
+  def GET(self):
+    return scrape.Scraper().list()
+
+  def POST(self):
+    args = web.data()
+    jstring = json.loads(args)
+    
+    scrape.Scraper().scrape(url=jstring['url'], keywords=jstring['keywords'])
+    return 'scraped %s' % jstring['url']
 
 class MyApplication(web.application):
     def run(self, port=8080, *middleware):

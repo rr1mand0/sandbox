@@ -12,6 +12,13 @@ class EsRecipe(object):
     self._index = index
     self._doc_type = doc_type
 
+  def get_records(self, **kwargs):
+    if 'body' in kwargs:
+      body = {'query':{'match': kwargs['body']}}
+    else:
+      body = {}
+    return self._es.search(index=self._index, doc_type=self._doc_type, body=body)['hits']['hits']
+
   def _search(self, **kwargs):
     if 'url' in kwargs:
       body = {'query':{'match':{'url':kwargs['url']}}}

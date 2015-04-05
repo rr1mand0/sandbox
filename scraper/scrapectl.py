@@ -19,6 +19,10 @@ def main():
       help='search for accounts matching string.  To print all accounts you can use "all"')
   parser_delete.add_argument ('url', help='url to delete')
   parser_delete.set_defaults(func=scrape.Scraper().delete)
+
+  parser_list = subparsers.add_parser('list', 
+      help='search for accounts matching string.  To print all accounts you can use "all"')
+  parser_list.set_defaults(func=scrape.Scraper().list, url=None, keywords=None)
   
   args = parser.parse_args()
   args.func(url=args.url, keywords=args.keywords)
