@@ -59,6 +59,8 @@ FLOW = OAuth2WebServerFlow(
     scope= 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
     user_agent="crustifier/V0.1")
 
+class CalendarNotFoundError(Exception):
+  pass
 
 class GoogleService(object):
   def __init__(self, config):
@@ -94,24 +96,27 @@ class TaskService(GoogleService):
     return tl
 
   def create(self, name):
-    body = {
-      'title': name
-    }
-    self.service.tasklists().insert(body=body).execute()
-
+    """ create if tasklist does not exist """
+    id = self.get_tasklist_by_name(name) 
+    return id if id is not None else \
+      self.service.tasklists().insert(body={ 'title': name }).execute()
 
   def delete(self, name):
-    _id = self.get_tasklist_by_name(name=name)
+    _id = self.get_tasklist_by_name(name=name)['id']
     self.service.tasklists().delete(tasklist=_id).execute()
 
   def get_tasklist_by_name(self, name):
     tasklist = self.get_tasklist()
     for item in tasklist['items']:
       if item['title'] == name:
-        return item['id']
+        return item
 
   def list_by_tasklist(self, name):
     item = self.get_tasklist_by_name(name)
+
+  def show_tasks(self, listname):
+    id = self.get_tasklist_by_name(listname)
+    return self.service.tasks().list(tasklist=id).execute()
 
 
 class CalendarService(GoogleService):
@@ -138,11 +143,20 @@ class CalendarService(GoogleService):
     tl = self.service.calendars().list().execute()
     return tl
 
-  def get_calendar_by_name(self, name):
+  def get_calendar_events(self, name, timeMin, timeMax):
     calendars = self.get_calendarlist()
+    found = False
     for item in calendars['items']:
       if item['summary'] == name:
-        return item['id']
+        found = True
+        break
+    if not found:
+      raise CalendarNotFoundError('Cannot find calendar "%s"' % name)
+
+    return self.service.events().list(
+        calendarId=item['id'], timeMin=timeMin, timeMax=timeMax, orderBy="startTime", singleEvents=True).execute()['items']
+
+
 
   def delete(self, name):
     _id = self.get_calendar_by_name(name=name)

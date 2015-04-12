@@ -71,7 +71,7 @@ class Scraper(object):
   def __init__(self):
     esfd = es.EsRecipe()
 
-  def scrape(self, url, keywords):
+  def scrape(self, url, keywords=None, save_to_es=False):
     parsed_uri = urlparse( url )
     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
@@ -87,13 +87,17 @@ class Scraper(object):
     elif re.search('chow.com', domain):
       recipe = ChowComScraper().extract(url, recipe_tree)
 
-    try:
+    if keywords:
       recipe['keywords'] = keywords
-      print json.dumps(recipe, indent=2)
-      esfd = es.EsRecipe()
-      esfd.save(recipe)
-    except UnboundLocalError:
-      print "Could not handle recipe from %s" % url
+
+    if save_to_es:
+      try:
+        print json.dumps(recipe, indent=2)
+        esfd = es.EsRecipe()
+        esfd.save(recipe)
+      except UnboundLocalError:
+        print "Could not handle recipe from %s" % url
+    return recipe
 
   def load(self, url):
     pass
