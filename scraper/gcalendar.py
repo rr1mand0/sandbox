@@ -4,9 +4,9 @@ import argparse
 import json
 
 def tl_list(args):
-  tasklist = gs.CalendarService().get_tasklist()
-  for n in tasklist['items']:
-    print n['title']
+  callist = gs.CalendarService().get_calendarlist()
+  for n in callist['items']:
+    print n['summary']
 
 def tl_create(args):
   gs.CalendarService().create(args.listname)

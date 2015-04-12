@@ -62,7 +62,6 @@ FLOW = OAuth2WebServerFlow(
 
 class GoogleService(object):
   def __init__(self, config):
-    import ipdb; ipdb.set_trace() # BREAKPOINT
     task_storage = Storage(config['storage_file'])
     credentials = task_storage.get()
 
@@ -125,4 +124,26 @@ class CalendarService(GoogleService):
     }
     super(CalendarService, self).__init__(config)
 
+  def get_calendarlist(self):
+    tl = self.service.calendarList().list().execute()
+    return tl
 
+  def create(self, name):
+    body = {
+      'summary': name
+    }
+    self.service.calendars().insert(body=body).execute()
+
+  def get_calendars(self):
+    tl = self.service.calendars().list().execute()
+    return tl
+
+  def get_calendar_by_name(self, name):
+    calendars = self.get_calendarlist()
+    for item in calendars['items']:
+      if item['summary'] == name:
+        return item['id']
+
+  def delete(self, name):
+    _id = self.get_calendar_by_name(name=name)
+    self.service.calendars().delete(id=_id).execute()
